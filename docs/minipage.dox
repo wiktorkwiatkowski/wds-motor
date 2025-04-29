@@ -1,0 +1,15 @@
+/**
+ * @mainpage WDS Motor Documentation
+ *
+ * # WDS Motor
+ * Aplikacja Qt do sterowania silnikiem DC przez ESP32, z komunikacją binarną i wizualizacją danych.
+ *
+ * ## Zawiera:
+ * - Odbiór i parsowanie danych z ESP32 (RPM, PWM, prąd, napięcie, moc, PID).
+ * - Wysyłanie wartości sterujących (PWM, Kp, Ki, Kd).
+ * - Dokumentację klas i funkcji.
+ *
+ * ## Autor:
+ * Wiktor Kwiatkowski 275423, 2025
+ *
+ */

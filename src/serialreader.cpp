@@ -3,14 +3,17 @@
 #include <QtEndian>
 #include <QDebug>
 
+// Konstruktor klasy SerialReader.
+// Inicjalizuje połączenie sygnału QSerialPort::readyRead z metodą handleReadyRead.
 SerialReader::SerialReader(QObject *parent)
     : QObject(parent)
 {
-    // Kiedy są nowe dane na uart to wywoła się funkcja hadnleReadyRead readyRead to sygnał
+    // Po otrzymaniu nowych danych wywołuje funkcję handleReadyRead()
     connect(&serial, &QSerialPort::readyRead, this, &SerialReader::handleReadyRead);
 }
 
-// Ustawia wszystkie parametru portu
+// Ustawia parametry portu szeregowego i otwiera połączenie.
+// Jeśli otwarcie się nie powiedzie, emituje sygnał errorOccurred().
 void SerialReader::start(const QString &portName)
 {
     serial.setPortName(portName);
@@ -28,13 +31,16 @@ void SerialReader::start(const QString &portName)
     buffer.clear();
 }
 
-// Zamyka port jeśli jest otwarty
+// Zamyka port, jeśli jest otwarty.
 void SerialReader::stop()
 {
     if (serial.isOpen())
         serial.close();
 }
 
+// Odczytuje dane z portu szeregowego i składa je w ramki.
+// Gdy znajdzie poprawną ramkę (o długości frameSize i poprawnym checksum),
+// wywołuje parseFrame() i emituje newDataReceived().
 void SerialReader::handleReadyRead()
 {
     // Dodajemy do buffera dane z seriala
@@ -45,37 +51,37 @@ void SerialReader::handleReadyRead()
     while (buffer.size() >= frameSize) {
         int startIndex = buffer.indexOf(static_cast<char>(0xA5));
         if (startIndex == -1) {
-            qDebug() << "Nie znaleziono bajtu startu (0xA5), czyszczę bufor";
+            qDebug() << "Nie znaleziono bajtu startu (0xA5), czyszczenie buforu";
             buffer.clear();
             return;
         }
 
         if (startIndex > 0) {
-            qDebug() << "Usuwam bajty przed startem:" << buffer.left(startIndex).toHex(' ');
+            qDebug() << "Usunięcie bajtów przed startem:" << buffer.left(startIndex).toHex(' ');
             buffer.remove(0, startIndex);
         }
 
         if (buffer.size() < frameSize) {
-            qDebug() << "Czekam na więcej danych, mam" << buffer.size() << "z" << frameSize;
+            qDebug() << "Czekanie na resztę danych, jest" << buffer.size() << "z" << frameSize;
             return;
         }
 
         QByteArray frame = buffer.left(frameSize);
         buffer.remove(0, frameSize);
 
-        qDebug() << "Znalazłem pełną ramkę:" << frame.toHex(' ').toUpper();
+        qDebug() << "Znalaziono pełną ramkę:" << frame.toHex(' ').toUpper();
 
         SerialData data;
         if (parseFrame(frame, data)) {
             emit newDataReceived(data);
         } else {
             qDebug() << "Błąd parsowania lub checksum!";
-            // Szukamy kolejnej ramki — nie returnujemy
-            continue;
         }
     }
 }
 
+// Parsuje ramkę bajtów i wypisuje dane do struktury SerialData.
+// Sprawdza poprawność poprzez XOR wszystkich bajtów (oprócz checksum).
 bool SerialReader::parseFrame(const QByteArray &frame, SerialData &data)
 {
     if (frame.size() != frameSize)
@@ -90,15 +96,21 @@ bool SerialReader::parseFrame(const QByteArray &frame, SerialData &data)
     if (checksum != static_cast<quint8>(frame[frameSize - 1]))
         return false;
     // const char *raw = frame.constData();
-    memcpy(&data.rpm, frame.constBegin() + 2, 4);
-    memcpy(&data.pwm, frame.constBegin() + 6, 4);
-    memcpy(&data.current, frame.constBegin() + 10, 4);
-    memcpy(&data.voltage, frame.constBegin() + 14, 4);
-    memcpy(&data.power, frame.constBegin() + 18, 4);
+    // Parsowanie pól (zgodnie z kolejnością w buforze)
+    memcpy(&data.rpm, frame.constBegin() + 1, 4);
+    memcpy(&data.pwm, frame.constBegin() + 5, 4);
+    memcpy(&data.current, frame.constBegin() + 9, 4);
+    memcpy(&data.voltage, frame.constBegin() + 13, 4);
+    memcpy(&data.power, frame.constBegin() + 17, 4);
+    memcpy(&data.kp, frame.constBegin() + 21, 4);
+    memcpy(&data.ki, frame.constBegin() + 25, 4);
+    memcpy(&data.kd, frame.constBegin() + 29, 4);
 
     return true;
 }
 
+// Tworzy ramkę danych do wysłania (start byte, typ, wartość float, checksum)
+// i wysyła ją przez port szeregowy.
 void SerialReader::sendData(DataType type, float value)
 {
     if (!serial.isOpen()) {

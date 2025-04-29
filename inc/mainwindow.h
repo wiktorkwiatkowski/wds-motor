@@ -22,6 +22,8 @@ public:
 
 private slots:
     void on_pushButtonSearchPorts_clicked();
+    void handleNewSerialData(const SerialData &data);
+    void handleSerialError(const QString &error);
 
 private:
     Ui::MainWindow *ui;
