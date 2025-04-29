@@ -1,35 +1,48 @@
+/**
+ * @file main.cpp
+ * @brief Uruchamia program i pozwala użytkownikowi wybrać port szeregowy.
+ *
+ * Plik zawiera główną funkcję programu. Na początku wyświetla okno wyboru portu USB,
+ * a po zatwierdzeniu uruchamia główne okno aplikacji z wizualizacją danych i kontrolą silnika.
+ */
+
 #include "../inc/mainwindow.h"
 #include "../inc/portdialog.h"
 #include <QApplication>
 #include <QLocale>
 #include <QTranslator>
 
+/**
+ * @brief Główna funkcja programu.
+ *
+ * Pokazuje okno dialogowe do wyboru portu COM, a następnie otwiera główne okno aplikacji.
+ * Jeśli użytkownik anuluje wybór portu, program kończy działanie.
+ *
+ * @param argc Liczba argumentów przekazanych do programu.
+ * @param argv Argumenty przekazane z linii poleceń.
+ * @return Kod zakończenia programu (0 = OK).
+ */
 int main(int argc, char *argv[])
 {
-     QApplication a(argc, argv);
-    // QTranslator translator;
-    // const QStringList uiLanguages = QLocale::system().uiLanguages();
-    // for (const QString &locale : uiLanguages) {
-    //     const QString baseName = "wds_motor_" + QLocale(locale).name();
-    //     if (translator.load(":/i18n/" + baseName)) {
-    //         a.installTranslator(&translator);
-    //         break;
-    //     }
-    // }
-    // Tworzymy okno dialogowe do wyboru portu
-     PortDialog dialog;
-     dialog.setWindowTitle("Wybór Portu");
+    QApplication a(argc, argv);
 
-     // Uruchamiamy dialog
-     if (dialog.exec() == QDialog::Accepted) {
-         QMessageBox::information( nullptr, QObject::tr("Połączenie"), QObject::tr("Połączono z portem: %1").arg(dialog.selectedPort()));
+    // Tworzymy okno dialogowe do wyboru portu
+    PortDialog dialog;
+    dialog.setWindowTitle("Wybór Portu");
+
+    // Uruchamienie dialog'u i sprawdzenie czy użytkownik kliknął "Połącz"
+    if (dialog.exec() == QDialog::Accepted) {
+        QMessageBox::information( nullptr, QObject::tr("Połączenie"), QObject::tr("Połączono z portem: %1").arg(dialog.selectedPort()));
     } else {
+        // Jeśli użytkownik anulował, koniec aplikacji
         return 0;
     }
 
-    // Sprawdzamy wybrany port
+    // Pobranie nazwy wybranego portu
     QString selectedPort = dialog.selectedPort();
     qDebug() << "Wybrano port: " << selectedPort;
+
+    // Stworzenie i uruchamienie głównego okna aplikacji
     MainWindow w(dialog.selectedPort());
     w.show();
     return a.exec();

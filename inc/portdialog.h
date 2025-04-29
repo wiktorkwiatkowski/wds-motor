@@ -1,3 +1,12 @@
+/**
+ * @file portdialog.h
+ * @brief Deklaracja klasy PortDialog do wyboru portu szeregowego.
+ *
+ * Klasa reprezentuje proste okno dialogowe z interfejsem Qt, umożliwiające użytkownikowi
+ * wybór dostępnego portu USB z listy oraz jego potwierdzenie. Obsługuje także
+ * ręczne odświeżanie dostępnych portów.
+ */
+
 #ifndef PORTDIALOG_H
 #define PORTDIALOG_H
 
@@ -12,9 +21,9 @@ class PortDialog;
 QT_END_NAMESPACE
 
 /**
- * @brief Klasa PortDialog reprezentuje okno dialogowe służące do wyboru portu szeregowego.
+ * @brief Klasa reprezentuje okno dialogowe służące do wyboru portu szeregowego.
  *
- * Umożliwia użytkownikowi wybór dostępnego portu COM z listy oraz odświeżenie tej listy.
+ * Umożliwia użytkownikowi wybór dostępnego portu USB z listy oraz odświeżenie tej listy.
  * Po zatwierdzeniu dialogu, wybrany port może być użyty do dalszej komunikacji.
  */
 class PortDialog : public QDialog
@@ -35,7 +44,7 @@ public:
 
     /**
      * @brief Zwraca nazwę wybranego portu.
-     * @return Nazwa portu (np. "COM3" lub "/dev/ttyUSB0").
+     * @return Nazwa portu (np. "/dev/ttyUSB0").
      */
     QString selectedPort() const;
 
@@ -60,7 +69,7 @@ private:
      */
     void refreshPorts();
 
-    Ui::PortDialog *ui;   ///< Wskaźnik do interfejsu użytkownika (wygenerowany przez Qt Designer).
+    Ui::PortDialog *ui;
     QString portName;     ///< Wybrana nazwa portu.
 };
 

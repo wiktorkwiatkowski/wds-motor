@@ -95,7 +95,7 @@ bool SerialReader::parseFrame(const QByteArray &frame, SerialData &data)
     // Sprawdzenie czy policzona suma zgadza się z otrzymaną sumą
     if (checksum != static_cast<quint8>(frame[frameSize - 1]))
         return false;
-    // const char *raw = frame.constData();
+
     // Parsowanie pól (zgodnie z kolejnością w buforze)
     memcpy(&data.rpm, frame.constBegin() + 1, 4);
     memcpy(&data.pwm, frame.constBegin() + 5, 4);
@@ -105,6 +105,7 @@ bool SerialReader::parseFrame(const QByteArray &frame, SerialData &data)
     memcpy(&data.kp, frame.constBegin() + 21, 4);
     memcpy(&data.ki, frame.constBegin() + 25, 4);
     memcpy(&data.kd, frame.constBegin() + 29, 4);
+    memcpy(&data.mode, frame.constBegin() + 33, 1);
 
     return true;
 }

@@ -3,7 +3,7 @@
  * @brief Deklaracja klasy SerialReader do obsługi komunikacji szeregowej.
  *
  * Zawiera strukturę SerialData, enum DataType i klasę SerialReader.
- * Odpowiada za komunikację z mikrokontrolerem przez port UART.
+ * Odpowiada za komunikację z mikrokontrolerem przez konwerter UART-USB.
  */
 
 #ifndef SERIALREADER_H
@@ -15,7 +15,7 @@
 
 /**
  * @struct SerialData
- * @brief Struktura zawierająca dane odebrane z mikrokontrolera.
+ * @brief Struktura przechowująca dane odebrane z mikrokontrolera.
  *
  * Dane te reprezentują aktualne parametry pracy silnika:
  * obroty (RPM), wypełnienie PWM, prąd, napięcie, moc oraz
@@ -30,6 +30,7 @@ struct SerialData {
     float kp;       ///< Wzmocnienie proporcjonalne regulatora PID
     float ki;       ///< Wzmocnienie całkujące regulatora PID
     float kd;       ///< Wzmocnienie różniczkujące regulatora PID
+    uint8_t mode;   ///< Tryb pracy: 0 - ręczny, 1 - automatyczny
 };
 
 
@@ -39,11 +40,16 @@ struct SerialData {
  * @brief Typ danych wysyłanych do mikrokontrolera.
  *
  * Każdy typ odpowiada jednej konfiguracji.
+ * Dzięki tym wartością mikrokontroler będzie wiedział, jak interpretować otrzymaną wartość.
  */
 enum DataType : quint8 {
     PWM = 0x01, ///< Zmiana wypełnienia PWM
-    Kd  = 0x02, ///< Zmiana parametru Kd
-    RPM = 0x03, ///< Zmiana zadanej prędkości obrotowej (RPM)
+    RPM = 0x02, ///< Zmiana zadanej prędkości obrotowej (RPM)
+    Kp = 0x03, ///< Zmiana parametru Kp
+    Ki = 0x04, ///< Zmiana parametru Ki
+    Kd  = 0x05, ///< Zmiana parametru Kd
+    manual = 0x06, ///< Zmiana trybu na manualny
+    automatic = 0x07 ///< Zmiana trybu na automatyczny
 };
 
 
@@ -56,7 +62,6 @@ enum DataType : quint8 {
  */
 class SerialReader : public QObject {
     Q_OBJECT
-
 public:
     /**
      * @brief Konstruktor klasy SerialReader.
@@ -76,7 +81,7 @@ public:
 
     /**
      * @brief Wysyła ramkę danych do mikrokontrolera.
-     * @param type Typ danych (enum DataType).
+     * @param type Typ danych (enum DataType), mówiący esp jak ma interpretować otrzymaną wartość.
      * @param value Wartość typu float do wysłania.
      */
     void sendData(DataType type, float value);
@@ -101,7 +106,7 @@ private slots:
 private:
     QSerialPort serial;         ///< Obiekt Qt obsługujący port szeregowy
     QByteArray buffer;          ///< Bufor do składania ramek z bajtów
-    static constexpr int frameSize = 34; ///< Długość oczekiwanej ramki danych
+    static constexpr int frameSize = 35; ///< Długość oczekiwanej ramki danych
 
     /**
      * @brief Próbuje sparsować jedną ramkę danych z bufora.
