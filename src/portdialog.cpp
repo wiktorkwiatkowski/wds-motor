@@ -2,9 +2,7 @@
 #include "../ui/ui_portdialog.h"
 
 PortDialog::PortDialog(QWidget *parent)
-    : QDialog(parent)
-    , ui(new Ui::PortDialog)
-{
+    : QDialog(parent), ui(new Ui::PortDialog) {
     ui->setupUi(this);
     // Podłączenie przycisków do funkcji (slotów)
     connect(ui->pushButtonConnect, &QPushButton::clicked, this, &PortDialog::on_pushButtonConnect_clicked);
@@ -14,14 +12,10 @@ PortDialog::PortDialog(QWidget *parent)
     refreshPorts();
 }
 
-PortDialog::~PortDialog()
-{
-    delete ui;
-}
+PortDialog::~PortDialog() { delete ui; }
 
 // Wczytuje dostępne porty szeregowe do comboBoxa
-void PortDialog::refreshPorts()
-{
+void PortDialog::refreshPorts() {
     // Wyczyść poprzednie pozycje
     ui->comboBoxPort->clear();
 
@@ -35,8 +29,7 @@ void PortDialog::refreshPorts()
 }
 
 // Obsługa kliknięcia przycisku "Połącz"
-void PortDialog::on_pushButtonConnect_clicked()
-{
+void PortDialog::on_pushButtonConnect_clicked() {
     // Pobierz aktualnie wybrany port z rozwijanej listy
     QString selectedPortName = ui->comboBoxPort->currentText();
 
@@ -54,14 +47,10 @@ void PortDialog::on_pushButtonConnect_clicked()
 }
 
 // Obsługa kliknięcia przycisku "Odśwież"
-void PortDialog::on_pushButtonRefresh_clicked()
-{
+void PortDialog::on_pushButtonRefresh_clicked() {
     // Ponownie wczytaj listę portów
     refreshPorts();
 }
 
 // Zwraca nazwę aktualnie wybranego portu
-QString PortDialog::selectedPort() const
-{
-    return portName;
-}
+QString PortDialog::selectedPort() const { return portName; }

@@ -2,15 +2,10 @@
 #include "../ui/ui_mainwindow.h"
 
 MainWindow::MainWindow(QString portName, QWidget *parent)
-    : QMainWindow(parent),
-    ui(new Ui::MainWindow),
-    serialReader(new SerialReader(this)),
-    pwmSeries(new QLineSeries),
-    chart(new QChart),
-    chartView(new QChartView),
-    axisX(new QValueAxis),
-    axisY(new QValueAxis)
-{
+    : QMainWindow(parent), ui(new Ui::MainWindow),
+    serialReader(new SerialReader(this)), pwmSeries(new QLineSeries),
+    chart(new QChart), chartView(new QChartView), axisX(new QValueAxis),
+    axisY(new QValueAxis) {
     ui->setupUi(this);
 
     // Inicjalizacja wykresu PWM
@@ -30,28 +25,20 @@ MainWindow::MainWindow(QString portName, QWidget *parent)
 
     // Start timera do pomiaru czasu oraz początku uruchomienia aplikacji
     elapsed.start();
-
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
     // Zamknięcie portu szeregowego i zwolnienie pamięci interfejsu
     serialReader->stop();
     delete ui;
 }
 
 // Funkcja aktualizująca wartości w GUI po odebraniu nowej ramki danych
-void MainWindow::handleNewSerialData(const SerialData &data)
-{
-    qDebug() << "RPM:" << data.rpm
-             << "PWM:" << data.pwm
-             << "Current:" << data.current
-             << "Voltage:" << data.voltage
-             << "Power:" << data.power
-             << "Kp:" << data.kp
-             << "Ki:" << data.ki
-             << "Kd:" << data.kd
-             << "Mode:"<<data.mode;
+void MainWindow::handleNewSerialData(const SerialData &data) {
+    qDebug() << "RPM:" << data.rpm << "PWM:" << data.pwm
+             << "Current:" << data.current << "Voltage:" << data.voltage
+             << "Power:" << data.power << "Kp:" << data.kp << "Ki:" << data.ki
+             << "Kd:" << data.kd << "Mode:" << data.mode;
 
     // Ustawianie wartości w odpowiednich etykietach GUI
     ui->labelRPMValue->setText(QString::number(data.rpm, 'f', 0));
@@ -71,23 +58,20 @@ void MainWindow::handleNewSerialData(const SerialData &data)
     }
 
     // Usuwanie starych punktów spoza zakresu ostatnich 5 sekund
-    // Jeśli są jakiekolwiek punkty oraz wartość pierwszego punktu na osi X jest starsza niż ostatnie 5 sekund to go usuń.
-    // I tak w pętli do momentu pozbycia się punktów, które przekroczyły zadany czas, w tym przypadku 5 sekund.
+    // Jeśli są jakiekolwiek punkty oraz wartość pierwszego punktu na osi X jest
+    // starsza niż ostatnie 5 sekund to go usuń. I tak w pętli do momentu pozbycia
+    // się punktów, które przekroczyły zadany czas, w tym przypadku 5 sekund.
     while (!pwmSeries->points().isEmpty() && pwmSeries->points().first().x() < (currentTime - 5.0)) {
         pwmSeries->remove(0);
     }
-
-
 }
 
 // Funkcja obsługująca błędy komunikacji szeregowej
-void MainWindow::handleSerialError(const QString &error)
-{
+void MainWindow::handleSerialError(const QString &error) {
     qDebug() << "Błąd:" << error;
 }
 
-void MainWindow::on_sliderPWMManual_valueChanged(float value)
-{
+void MainWindow::on_sliderPWMManual_valueChanged(float value) {
     // Wyświetl wartość na etykiecie
     ui->labelPWMManualValue->setText(QString::number(value) + "%");
 
@@ -99,7 +83,7 @@ void MainWindow::on_sliderPWMManual_valueChanged(float value)
 }
 
 // Inicjalizacja i konfiguracja wykresu PWM
-void MainWindow::setupPWMChart(){
+void MainWindow::setupPWMChart() {
     // Ustawienia serii danych
     pwmSeries->setName("PWM");
     chart->addSeries(pwmSeries);
@@ -125,6 +109,4 @@ void MainWindow::setupPWMChart(){
 
     // Dodanie widoku do layoutu w UI
     ui->widgetPWMGraph->layout()->addWidget(chartView);
-
 }
-

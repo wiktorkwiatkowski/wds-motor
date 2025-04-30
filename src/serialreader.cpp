@@ -1,21 +1,20 @@
 #include "../inc/serialreader.h"
 
-#include <QtEndian>
 #include <QDebug>
+#include <QtEndian>
 
 // Konstruktor klasy SerialReader.
-// Inicjalizuje połączenie sygnału QSerialPort::readyRead z metodą handleReadyRead.
-SerialReader::SerialReader(QObject *parent)
-    : QObject(parent)
-{
+// Inicjalizuje połączenie sygnału QSerialPort::readyRead z metodą
+// handleReadyRead.
+SerialReader::SerialReader(QObject *parent) : QObject(parent) {
     // Po otrzymaniu nowych danych wywołuje funkcję handleReadyRead()
-    connect(&serial, &QSerialPort::readyRead, this, &SerialReader::handleReadyRead);
+    connect(&serial, &QSerialPort::readyRead, this,
+            &SerialReader::handleReadyRead);
 }
 
 // Ustawia parametry portu szeregowego i otwiera połączenie.
 // Jeśli otwarcie się nie powiedzie, emituje sygnał errorOccurred().
-void SerialReader::start(const QString &portName)
-{
+void SerialReader::start(const QString &portName) {
     serial.setPortName(portName);
     serial.setBaudRate(QSerialPort::Baud115200);
     serial.setDataBits(QSerialPort::Data8);
@@ -32,8 +31,7 @@ void SerialReader::start(const QString &portName)
 }
 
 // Zamyka port, jeśli jest otwarty.
-void SerialReader::stop()
-{
+void SerialReader::stop() {
     if (serial.isOpen())
         serial.close();
 }
@@ -41,8 +39,7 @@ void SerialReader::stop()
 // Odczytuje dane z portu szeregowego i składa je w ramki.
 // Gdy znajdzie poprawną ramkę (o długości frameSize i poprawnym checksum),
 // wywołuje parseFrame() i emituje newDataReceived().
-void SerialReader::handleReadyRead()
-{
+void SerialReader::handleReadyRead() {
     // Dodajemy do buffera dane z seriala
     buffer.append(serial.readAll());
 
@@ -57,12 +54,14 @@ void SerialReader::handleReadyRead()
         }
 
         if (startIndex > 0) {
-            qDebug() << "Usunięcie bajtów przed startem:" << buffer.left(startIndex).toHex(' ');
+            qDebug() << "Usunięcie bajtów przed startem:"
+                     << buffer.left(startIndex).toHex(' ');
             buffer.remove(0, startIndex);
         }
 
         if (buffer.size() < frameSize) {
-            qDebug() << "Czekanie na resztę danych, jest" << buffer.size() << "z" << frameSize;
+            qDebug() << "Czekanie na resztę danych, jest" << buffer.size() << "z"
+                     << frameSize;
             return;
         }
 
@@ -82,8 +81,7 @@ void SerialReader::handleReadyRead()
 
 // Parsuje ramkę bajtów i wypisuje dane do struktury SerialData.
 // Sprawdza poprawność poprzez XOR wszystkich bajtów (oprócz checksum).
-bool SerialReader::parseFrame(const QByteArray &frame, SerialData &data)
-{
+bool SerialReader::parseFrame(const QByteArray &frame, SerialData &data) {
     if (frame.size() != frameSize)
         return false;
 
@@ -99,21 +97,20 @@ bool SerialReader::parseFrame(const QByteArray &frame, SerialData &data)
     // Parsowanie pól (zgodnie z kolejnością w buforze)
     memcpy(&data.rpm, frame.constBegin() + 1, 4);
     memcpy(&data.pwm, frame.constBegin() + 5, 4);
-    memcpy(&data.current, frame.constBegin() + 9, 4);
-    memcpy(&data.voltage, frame.constBegin() + 13, 4);
-    memcpy(&data.power, frame.constBegin() + 17, 4);
-    memcpy(&data.kp, frame.constBegin() + 21, 4);
-    memcpy(&data.ki, frame.constBegin() + 25, 4);
-    memcpy(&data.kd, frame.constBegin() + 29, 4);
-    memcpy(&data.mode, frame.constBegin() + 33, 1);
+    memcpy(&data.current, frame.constBegin() + 6, 4);
+    memcpy(&data.voltage, frame.constBegin() + 10, 4);
+    memcpy(&data.power, frame.constBegin() + 14, 4);
+    memcpy(&data.kp, frame.constBegin() + 18, 4);
+    memcpy(&data.ki, frame.constBegin() + 22, 4);
+    memcpy(&data.kd, frame.constBegin() + 26, 4);
+    memcpy(&data.mode, frame.constBegin() + 30, 1);
 
     return true;
 }
 
 // Tworzy ramkę danych do wysłania (start byte, typ, wartość float, checksum)
 // i wysyła ją przez port szeregowy.
-void SerialReader::sendData(DataType type, float value)
-{
+void SerialReader::sendData(DataType type, float value) {
     if (!serial.isOpen()) {
         qDebug() << "Port nie jest otwarty!";
         return;
@@ -127,7 +124,10 @@ void SerialReader::sendData(DataType type, float value)
     memcpy(frame.begin(), &startByte, sizeof(quint8));
     // Typ danych (enum)
     memcpy(frame.begin() + 1, &type, sizeof(quint8));
-
+    // Jeśli wartość to PWM trzeba ją rzutować
+    if (type == PWM) {
+        value = static_cast<uint8_t>(value);
+    }
     memcpy(frame.begin() + 2, &value, sizeof(quint32));
 
     // Liczymy checksum: XOR z bajtów od 0 do 5 (bez samej sumy)
@@ -135,9 +135,10 @@ void SerialReader::sendData(DataType type, float value)
     for (int i = 0; i < 6; ++i) {
         checksum ^= static_cast<quint8>(frame[i]);
     }
-    memcpy(frame.begin() + 6, &checksum,sizeof(quint8));
+    memcpy(frame.begin() + 6, &checksum, sizeof(quint8));
 
     serial.write(frame);
+    // Wymuś opróżnienie bufora
     serial.flush();
 
     qDebug() << "Wysłano ramkę:" << frame.toHex(' ').toUpper();
