@@ -28,6 +28,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${PROJECT_SOURCES}
         inc/portdialog.h src/portdialog.cpp ui/portdialog.ui
         inc/serialreader.h src/serialreader.cpp
+        inc/chartsmanager.h src/chartsmanager.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET wds_motor APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

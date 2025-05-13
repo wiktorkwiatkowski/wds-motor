@@ -19,6 +19,7 @@
 #include <QTimer>
 #include <QVBoxLayout>
 #include <QtCharts>
+#include "chartsmanager.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -70,6 +71,7 @@ private slots:
    */
     void on_sliderPWMManual_valueChanged(float value);
 
+    void setLabelsColors() const;
 private:
     /**
    * @brief Konfiguruje i inicjalizuje wykres czasu trwania sygnału PWM.
@@ -78,11 +80,10 @@ private:
 
     Ui::MainWindow *ui;
     SerialReader *serialReader; ///< Obiekt obsługujący komunikację z ESP32
-    QChart *chart;              ///< Wskaźnik do obiektu wykresu.
-    QChartView *chartView;      ///< Widok wykresu osadzonego w UI.
+
     QElapsedTimer elapsed; ///< Timer odmierzający czas od uruchomienia aplikacji.
-    QLineSeries *pwmSeries; ///< Seria danych do wykresu PWM [%] w czasie.
-    QValueAxis *axisX;      ///< Oś X, czas [s].
-    QValueAxis *axisY;      ///< Oś Y, PWM [%].
+
+    ChartsManager *charts;
+
 };
 #endif // MAINWINDOW_H

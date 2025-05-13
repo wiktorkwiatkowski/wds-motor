@@ -3,13 +3,10 @@
 
 MainWindow::MainWindow(QString portName, QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),
-    serialReader(new SerialReader(this)), pwmSeries(new QLineSeries),
-    chart(new QChart), chartView(new QChartView), axisX(new QValueAxis),
-    axisY(new QValueAxis) {
+    serialReader(new SerialReader(this)), charts(new ChartsManager(this)){
     ui->setupUi(this);
 
     // Inicjalizacja wykresu PWM
-    setupPWMChart();
 
     // Rozpoczęcie komunikacji z ESP32 przez podany port
     serialReader->start(portName);
@@ -23,6 +20,24 @@ MainWindow::MainWindow(QString portName, QWidget *parent)
     // Obsługa zmiany wartości suwaka PWM
     connect(ui->SliderPWMManual, &QSlider::valueChanged, this, &MainWindow::on_sliderPWMManual_valueChanged);
 
+    connect(ui->buttonSavePID, &QPushButton::clicked, this, [this]() {
+        float kp = ui->editKp->text().toFloat();
+        float ki = ui->editKi->text().toFloat();
+        float kd = ui->editKd->text().toFloat();
+
+        serialReader->sendData(DataType::Kp, kp);
+        serialReader->sendData(DataType::Ki, ki);
+        serialReader->sendData(DataType::Kd, kd);
+    });
+
+    setLabelsColors();
+
+     // Inicjalizacja wykresu PWM
+    charts->setupChart(ChartType::PWM, ui->widgetPWMGraph->layout(), "PWM", "PWM [%]", 100);
+    charts->setupChart(ChartType::RPM, ui->widgetRPMGraph->layout(), "RPM", "obr/min", 5000);
+    charts->setupChart(ChartType::Voltage, ui->widgetVoltageGraph->layout(), "Napięcie", "V", 15);
+    charts->setupChart(ChartType::Current, ui->widgetCurrentGraph->layout(), "Prąd", "mA", 2000);
+    charts->setupChart(ChartType::Power, ui->widgetPowerGraph->layout(), "Moc", "mW", 2000);
     // Start timera do pomiaru czasu oraz początku uruchomienia aplikacji
     elapsed.start();
 }
@@ -45,25 +60,17 @@ void MainWindow::handleNewSerialData(const SerialData &data) {
     ui->labelCurrentValue->setText(QString::number(data.current, 'f', 2));
     ui->labelVoltageValue->setText(QString::number(data.voltage, 'f', 1));
     ui->labelPowerValue->setText(QString::number(data.power, 'f', 1));
+    ui->labelPWMValue->setText(QString::number(data.pwm));
+
+    ui->labelKpValue->setText(QString::number(data.kp, 'f', 2));
+    ui->labelKiValue->setText(QString::number(data.ki, 'f', 2));
+    ui->labelKdValue->setText(QString::number(data.kd, 'f', 2));
 
     // Obliczenie czasu w sekundach od uruchomienia aplikacji
     qreal currentTime = elapsed.elapsed() / 1000.0;
 
     // Dodanie punktu na wykresie (PWM przeskalowane do 0–100%)
-    pwmSeries->append(currentTime, data.pwm / 2.55f);
-
-    // Jeśli czas przekracza 5s, przesuwaj oś X
-    if (currentTime > 5.0) {
-        axisX->setRange(currentTime - 5.0, currentTime);
-    }
-
-    // Usuwanie starych punktów spoza zakresu ostatnich 5 sekund
-    // Jeśli są jakiekolwiek punkty oraz wartość pierwszego punktu na osi X jest
-    // starsza niż ostatnie 5 sekund to go usuń. I tak w pętli do momentu pozbycia
-    // się punktów, które przekroczyły zadany czas, w tym przypadku 5 sekund.
-    while (!pwmSeries->points().isEmpty() && pwmSeries->points().first().x() < (currentTime - 5.0)) {
-        pwmSeries->remove(0);
-    }
+    charts->addPoint(ChartType::PWM, currentTime, data.pwm / 2.55f);
 }
 
 // Funkcja obsługująca błędy komunikacji szeregowej
@@ -82,31 +89,11 @@ void MainWindow::on_sliderPWMManual_valueChanged(float value) {
     serialReader->sendData(PWM, scaledValue);
 }
 
-// Inicjalizacja i konfiguracja wykresu PWM
-void MainWindow::setupPWMChart() {
-    // Ustawienia serii danych
-    pwmSeries->setName("PWM");
-    chart->addSeries(pwmSeries);
-    chart->setTitle("Wypełnienie PWM w czasie");
+void MainWindow::setLabelsColors() const{
+    ui->labelCurrentValue->setStyleSheet("color: red;");
+    ui->labelRPMValue->setStyleSheet("color: orange;");
+    ui->labelVoltageValue->setStyleSheet("color: blue;");
+    ui->labelPowerValue->setStyleSheet("color: green;");
+    ui->labelPWMValue->setStyleSheet("color: purple;");
 
-    // Oś X, czas [s]
-    axisX->setRange(0, 5.0);
-    axisX->setLabelFormat("%.1f");
-    axisX->setTitleText("Czas [s]");
-    chart->addAxis(axisX, Qt::AlignBottom);
-    pwmSeries->attachAxis(axisX);
-
-    // Oś Y, PWM [%]
-    axisY->setRange(0, 100);
-    axisY->applyNiceNumbers();
-    axisY->setTitleText("PWM [%]");
-    chart->addAxis(axisY, Qt::AlignLeft);
-    pwmSeries->attachAxis(axisY);
-
-    // Dodanie wykresu do widoku i aktywacja wygładzania
-    chartView->setChart(chart);
-    chartView->setRenderHint(QPainter::Antialiasing);
-
-    // Dodanie widoku do layoutu w UI
-    ui->widgetPWMGraph->layout()->addWidget(chartView);
 }
