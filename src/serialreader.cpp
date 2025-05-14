@@ -43,7 +43,7 @@ void SerialReader::handleReadyRead() {
     // Dodajemy do buffera dane z seriala
     buffer.append(serial.readAll());
 
-    qDebug() << "Odebrano bajty:" << buffer.toHex(' ').toUpper();
+    // qDebug() << "Odebrano bajty:" << buffer.toHex(' ').toUpper();
 
     while (buffer.size() >= frameSize) {
         int startIndex = buffer.indexOf(static_cast<char>(0xA5));
@@ -68,7 +68,7 @@ void SerialReader::handleReadyRead() {
         QByteArray frame = buffer.left(frameSize);
         buffer.remove(0, frameSize);
 
-        qDebug() << "Znalaziono pełną ramkę:" << frame.toHex(' ').toUpper();
+        // qDebug() << "Znalaziono pełną ramkę:" << frame.toHex(' ').toUpper();
 
         SerialData data;
         if (parseFrame(frame, data)) {
@@ -141,5 +141,5 @@ void SerialReader::sendData(DataType type, float value) {
     // Wymuś opróżnienie bufora
     serial.flush();
 
-    qDebug() << "Wysłano ramkę:" << frame.toHex(' ').toUpper();
+    // qDebug() << "Wysłano ramkę:" << frame.toHex(' ').toUpper();
 }

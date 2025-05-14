@@ -72,6 +72,8 @@ private slots:
     void on_sliderPWMManual_valueChanged(float value);
 
     void setLabelsColors() const;
+
+    void updateGUIAndCharts() const;
 private:
     /**
    * @brief Konfiguruje i inicjalizuje wykres czasu trwania sygnału PWM.
@@ -82,8 +84,10 @@ private:
     SerialReader *serialReader; ///< Obiekt obsługujący komunikację z ESP32
 
     QElapsedTimer elapsed; ///< Timer odmierzający czas od uruchomienia aplikacji.
+    QTimer *updateTimer;
 
     ChartsManager *charts;
+    SerialData latestData;
 
 };
 #endif // MAINWINDOW_H

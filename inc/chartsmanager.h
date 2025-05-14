@@ -28,6 +28,8 @@ private:
         QChartView *chartView;
         QValueAxis *axisX;
         QValueAxis *axisY;
+        qreal lastXAxisUpdateTime = 0.0;
+        int xRange;
     };
 
     QMap<ChartType, ChartComponents> charts;

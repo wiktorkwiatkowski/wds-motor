@@ -39,6 +39,11 @@ MainWindow::MainWindow(QString portName, QWidget *parent)
     charts->setupChart(ChartType::Current, ui->widgetCurrentGraph->layout(), "Prąd", "mA", 2000);
     charts->setupChart(ChartType::Power, ui->widgetPowerGraph->layout(), "Moc", "mW", 2000);
     // Start timera do pomiaru czasu oraz początku uruchomienia aplikacji
+    updateTimer = new QTimer(this);
+    updateTimer->setInterval(10); // co 10 ms
+    connect(updateTimer, &QTimer::timeout, this, &MainWindow::updateGUIAndCharts);
+    updateTimer->start();
+
     elapsed.start();
 }
 
@@ -50,27 +55,32 @@ MainWindow::~MainWindow() {
 
 // Funkcja aktualizująca wartości w GUI po odebraniu nowej ramki danych
 void MainWindow::handleNewSerialData(const SerialData &data) {
-    qDebug() << "RPM:" << data.rpm << "PWM:" << data.pwm
-             << "Current:" << data.current << "Voltage:" << data.voltage
-             << "Power:" << data.power << "Kp:" << data.kp << "Ki:" << data.ki
-             << "Kd:" << data.kd << "Mode:" << data.mode;
+    // qDebug() << "RPM:" << data.rpm << "PWM:" << data.pwm
+    //          << "Current:" << data.current << "Voltage:" << data.voltage
+    //          << "Power:" << data.power << "Kp:" << data.kp << "Ki:" << data.ki
+    //          << "Kd:" << data.kd << "Mode:" << data.mode;
 
     // Ustawianie wartości w odpowiednich etykietach GUI
-    ui->labelRPMValue->setText(QString::number(data.rpm, 'f', 0));
-    ui->labelCurrentValue->setText(QString::number(data.current, 'f', 2));
-    ui->labelVoltageValue->setText(QString::number(data.voltage, 'f', 1));
-    ui->labelPowerValue->setText(QString::number(data.power, 'f', 1));
-    ui->labelPWMValue->setText(QString::number(data.pwm));
+    // ui->labelRPMValue->setText(QString::number(data.rpm, 'f', 0));
+    // ui->labelCurrentValue->setText(QString::number(data.current, 'f', 2));
+    // ui->labelVoltageValue->setText(QString::number(data.voltage, 'f', 1));
+    // ui->labelPowerValue->setText(QString::number(data.power, 'f', 1));
+    // ui->labelPWMValue->setText(QString::number(data.pwm));
 
-    ui->labelKpValue->setText(QString::number(data.kp, 'f', 2));
-    ui->labelKiValue->setText(QString::number(data.ki, 'f', 2));
-    ui->labelKdValue->setText(QString::number(data.kd, 'f', 2));
+    // ui->labelKpValue->setText(QString::number(data.kp, 'f', 2));
+    // ui->labelKiValue->setText(QString::number(data.ki, 'f', 2));
+    // ui->labelKdValue->setText(QString::number(data.kd, 'f', 2));
 
     // Obliczenie czasu w sekundach od uruchomienia aplikacji
-    qreal currentTime = elapsed.elapsed() / 1000.0;
+    // qreal currentTime = elapsed.elapsed() / 1000.0;
 
-    // Dodanie punktu na wykresie (PWM przeskalowane do 0–100%)
-    charts->addPoint(ChartType::PWM, currentTime, data.pwm / 2.55f);
+    // // Dodanie punktu na wykresie (PWM przeskalowane do 0–100%)
+    // charts->addPoint(ChartType::PWM, currentTime, data.pwm / 2.55f);
+    // // charts->addPoint(ChartType::RPM, currentTime, data.rpm);
+    // // charts->addPoint(ChartType::Current, currentTime, data.current);
+    // // charts->addPoint(ChartType::Voltage, currentTime, data.voltage);
+    // // charts->addPoint(ChartType::Power, currentTime, data.power);
+    latestData = data;
 }
 
 // Funkcja obsługująca błędy komunikacji szeregowej
@@ -95,5 +105,28 @@ void MainWindow::setLabelsColors() const{
     ui->labelVoltageValue->setStyleSheet("color: blue;");
     ui->labelPowerValue->setStyleSheet("color: green;");
     ui->labelPWMValue->setStyleSheet("color: purple;");
+
+}
+
+void MainWindow::updateGUIAndCharts() const{
+    // Ustawienie wartości w GUI
+    ui->labelRPMValue->setText(QString::number(latestData.rpm, 'f', 0));
+    ui->labelCurrentValue->setText(QString::number(latestData.current, 'f', 2));
+    ui->labelVoltageValue->setText(QString::number(latestData.voltage, 'f', 1));
+    ui->labelPowerValue->setText(QString::number(latestData.power, 'f', 1));
+    ui->labelPWMValue->setText(QString::number(latestData.pwm / 2.55f, 'f', 1));
+
+    ui->labelKpValue->setText(QString::number(latestData.kp, 'f', 2));
+    ui->labelKiValue->setText(QString::number(latestData.ki, 'f', 2));
+    ui->labelKdValue->setText(QString::number(latestData.kd, 'f', 2));
+
+    // Aktualizacja wykresów
+    qreal t = elapsed.elapsed() / 1000.0;
+
+    charts->addPoint(ChartType::PWM, t, latestData.pwm / 2.55f);
+    charts->addPoint(ChartType::RPM, t, latestData.rpm);
+    charts->addPoint(ChartType::Current, t, latestData.current);
+    charts->addPoint(ChartType::Voltage, t, latestData.voltage);
+    charts->addPoint(ChartType::Power, t, latestData.power);
 
 }

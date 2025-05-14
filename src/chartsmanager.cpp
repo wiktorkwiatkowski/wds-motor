@@ -9,7 +9,7 @@ void ChartsManager::setupChart(ChartType type, QLayout *targetLayout, const QStr
     components.chartView = new QChartView(components.chart);
     components.axisX = new QValueAxis;
     components.axisY = new QValueAxis;
-
+    components.xRange = xRange;
     components.series->setName(title);
     components.chart->addSeries(components.series);
     components.chart->setTitle(title);
@@ -48,9 +48,18 @@ void ChartsManager::addPoint(ChartType type, qreal time, qreal value) {
     c.series->append(time, value);
 
     // Jeśli czas przekracza 5s, przesuwaj oś X
-    if (time > 5.0) {
-        c.axisX->setRange(time - 5.0, time);
+    if (time > c.xRange) {
+        c.axisX->setRange(time - c.xRange, time);
     }
+    // Przesuwanie osi X tylko co 1 sek
+    // if (time - c.lastXAxisUpdateTime >= 1.0) {
+    //     if (time > c.xRange) {
+    //         c.axisX->setRange(time - c.xRange, time);
+    //     } else {
+    //         c.axisX->setRange(0, c.xRange);
+    //     }
+    //     c.lastXAxisUpdateTime = time;
+    // }
 
     removeOldPoints(c.series, time);
 }
