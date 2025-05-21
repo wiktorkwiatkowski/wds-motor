@@ -2,6 +2,12 @@
 <ui version="4.0">
  <class>PortDialog</class>
  <widget class="QDialog" name="PortDialog">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -15,6 +21,9 @@
   </property>
   <property name="windowTitle">
    <string>Połącz się</string>
+  </property>
+  <property name="modal">
+   <bool>false</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -33,7 +42,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Wybierz port</string>
+      <string>Wybierz port:</string>
      </property>
     </widget>
    </item>
@@ -88,6 +97,11 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>comboBoxPort</tabstop>
+  <tabstop>pushButtonRefresh</tabstop>
+  <tabstop>pushButtonConnect</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

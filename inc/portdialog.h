@@ -13,6 +13,7 @@
 #include <QDialog>
 #include <QMessageBox>
 #include <QSerialPortInfo>
+#include <QScreen>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {

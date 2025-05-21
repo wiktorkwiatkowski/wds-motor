@@ -4,6 +4,7 @@
 PortDialog::PortDialog(QWidget *parent)
     : QDialog(parent), ui(new Ui::PortDialog) {
     ui->setupUi(this);
+
     // Podłączenie przycisków do funkcji (slotów)
     connect(ui->pushButtonConnect, &QPushButton::clicked, this, &PortDialog::on_pushButtonConnect_clicked);
     connect(ui->pushButtonRefresh, &QPushButton::clicked, this, &PortDialog::on_pushButtonRefresh_clicked);
@@ -11,7 +12,6 @@ PortDialog::PortDialog(QWidget *parent)
     // Pierwsze wczytanie dostępnych portów do listy
     refreshPorts();
 }
-
 PortDialog::~PortDialog() { delete ui; }
 
 // Wczytuje dostępne porty szeregowe do comboBoxa
