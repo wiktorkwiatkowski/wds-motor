@@ -47,6 +47,7 @@ enum DataType : quint8 {
     Ki = 0x04,   ///< Zmiana parametru Ki
     Kd = 0x05,   ///< Zmiana parametru Kd
     mode = 0x06, ///< Zmiana trybu na manualny/automatyczny, 0x00000000 - manualny, 0xFFFFFFFF - automatyczny
+    start_stop = 0x07
 };
 
 /**

@@ -2,7 +2,20 @@
 
 ChartsManager::ChartsManager(QObject *parent) : QObject{parent}{}
 
-void ChartsManager::setupChart(ChartType type, QLayout *targetLayout, const QString &title, const QString &yLabel, float yMax, int xRange) {
+/**
+ *
+ * Tworzy wykres o zadanym typie i konfiguruje jego oś X i Y. Następnie dodaje wykres do wskazanego
+ * layoutu w interfejsie Qt. Funkcja ustawia kolory linii, tytuł, zakresy osi oraz antyaliasing.
+ *
+ * @param type Typ wykresu (np. PWM, RPM, Current, itd.).
+ * @param targetLayout Layout, do którego ma zostać dodany wykres.
+ * @param title Tytuł wykresu wyświetlany u góry.
+ * @param yLabel Opis osi Y (np. "obr/min", "V", "mA").
+ * @param yMax Maksymalna wartość zakresu osi Y.
+ * @param xRange Zakres osi X w sekundach (domyślnie 5).
+ */
+
+void ChartsManager::setupChart(ChartType type, QLayout *targetLayout, const QString &title, const QString &yLabel, float yMax, int xRange, bool nice_numbers) {
     ChartComponents components;
     components.series = new QLineSeries;
     components.chart = new QChart;
@@ -19,9 +32,10 @@ void ChartsManager::setupChart(ChartType type, QLayout *targetLayout, const QStr
     components.axisX->setTitleText("Czas [s]");
     components.chart->addAxis(components.axisX, Qt::AlignBottom);
     components.series->attachAxis(components.axisX);
-
     components.axisY->setRange(0, yMax);
-    components.axisY->applyNiceNumbers();
+    if(nice_numbers){
+        components.axisY->applyNiceNumbers();
+    }
     components.axisY->setTitleText(yLabel);
     components.chart->addAxis(components.axisY, Qt::AlignLeft);
     components.series->attachAxis(components.axisY);
@@ -41,6 +55,15 @@ void ChartsManager::setupChart(ChartType type, QLayout *targetLayout, const QStr
     charts[type] = components;
 }
 
+/**
+ *
+ * Dodaje pojedynczy punkt do wykresu danego typu. Jeśli zakres X został przekroczony, oś X
+ * przesuwa się w prawo. Stare punkty poza aktualnym zakresem są usuwane.
+ *
+ * @param type Typ wykresu.
+ * @param time Czas pomiaru (np. czas działania aplikacji w sekundach).
+ * @param value Wartość pomiaru (np. prąd, RPM).
+ */
 void ChartsManager::addPoint(ChartType type, qreal time, qreal value) {
     if (!charts.contains(type)) return;
 
@@ -51,19 +74,18 @@ void ChartsManager::addPoint(ChartType type, qreal time, qreal value) {
     if (time > c.xRange) {
         c.axisX->setRange(time - c.xRange, time);
     }
-    // Przesuwanie osi X tylko co 1 sek
-    // if (time - c.lastXAxisUpdateTime >= 1.0) {
-    //     if (time > c.xRange) {
-    //         c.axisX->setRange(time - c.xRange, time);
-    //     } else {
-    //         c.axisX->setRange(0, c.xRange);
-    //     }
-    //     c.lastXAxisUpdateTime = time;
-    // }
 
     removeOldPoints(c.series, time);
 }
 
+/**
+ *
+ * Funkcja działa iteracyjnie, usuwając punkty z początku serii do momentu, aż wszystkie znajdują się
+ * w aktualnym oknie czasowym wykresu (domyślnie ostatnie 5 sekund).
+ *
+ * @param series Seria danych (QLineSeries), z której mają zostać usunięte stare punkty.
+ * @param currentTime Aktualny czas (w sekundach) używany do określenia okna czasowego.
+ */
 void ChartsManager::removeOldPoints(QLineSeries *series, qreal currentTime) {
     // Usuwanie starych punktów spoza zakresu ostatnich 5 sekund
     // Jeśli są jakiekolwiek punkty oraz wartość pierwszego punktu na osi X jest

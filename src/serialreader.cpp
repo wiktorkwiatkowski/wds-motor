@@ -141,5 +141,5 @@ void SerialReader::sendData(DataType type, float value) {
     // Wymuś opróżnienie bufora
     serial.flush();
 
-    // qDebug() << "Wysłano ramkę:" << frame.toHex(' ').toUpper();
+    qDebug() << "Wysłano ramkę:" << frame.toHex(' ').toUpper();
 }

@@ -12,6 +12,8 @@
 #include <QApplication>
 #include <QLocale>
 #include <QTranslator>
+#include <QStyle>
+
 
 /**
  * @brief Główna funkcja programu.

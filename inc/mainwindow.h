@@ -41,8 +41,6 @@ class MainWindow : public QMainWindow {
 public:
     /**
    * @brief Konstruktor głównego okna.
-   * @param portName Nazwa portu szeregowego do połączenia z ESP32.
-   * @param parent Obiekt nadrzędny (domyślnie nullptr).
    */
     MainWindow(QString portName, QWidget *parent = nullptr);
     /**
@@ -53,41 +51,46 @@ public:
 private slots:
     /**
    * @brief Slot wywoływany po odebraniu danych z ESP32 (aktualizacja danych).
-   * @param data Struktura danych zawierająca wartości z ramki (RPM, PWM,
-   * napięcie, itd.).
    */
     void handleNewSerialData(const SerialData &data);
 
     /**
    * @brief Slot obsługujący komunikaty o błędach z portu szeregowego.
-   * @param error Tekst błędu do wyświetlenia.
    */
     void handleSerialError(const QString &error);
 
     /**
    * @brief Slot wywoływany przy zmianie wartości suwaka sterowania ręcznego
    * PWM.
-   * @param value Wartość procentowa ustawiona przez użytkownika (0–100%).
    */
     void on_sliderPWMManual_valueChanged(float value);
 
+    void on_buttonStartStop_clicked();
+    void on_buttonToggleMode_clicked();
+    void on_buttonSetRPM_clicked();
+    /**
+    * @brief Ustawia kolory etykiet w GUI.
+    */
     void setLabelsColors() const;
 
-    void updateGUIAndCharts() const;
-private:
     /**
-   * @brief Konfiguruje i inicjalizuje wykres czasu trwania sygnału PWM.
-   */
-    void setupPWMChart();
+     * @brief Aktualizuje wykresy i etykiety GUI.
+    */
+    void updateCharts() const;
 
-    Ui::MainWindow *ui;
-    SerialReader *serialReader; ///< Obiekt obsługujący komunikację z ESP32
+    void updateGUI() const;
+private:
 
-    QElapsedTimer elapsed; ///< Timer odmierzający czas od uruchomienia aplikacji.
-    QTimer *updateTimer;
+    Ui::MainWindow *ui;                 ///< Interfejs użytkownika
+    SerialReader *serialReader;        ///< Komunikacja z ESP32
+    QElapsedTimer elapsed;             ///< Timer od startu aplikacji
+    QTimer *updateChartsTimer;               ///< Timer GUI i wykresów
+    QTimer *updateGUITimer;
+    ChartsManager *charts;             ///< Menedżer wykresów
+    SerialData latestData;             ///< Ostatnio odebrane dane
+    bool isManualMode = true;
+    bool isMotorRunning = false;
 
-    ChartsManager *charts;
-    SerialData latestData;
 
 };
 #endif // MAINWINDOW_H
