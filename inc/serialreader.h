@@ -70,7 +70,7 @@ public:
    * @brief Rozpoczyna komunikację przez port szeregowy.
    * @param portName Nazwa portu (np. COM3 lub /dev/ttyUSB0).
    */
-    void start(const QString &portName);
+    void start(const QString &portName, int baudRate = QSerialPort::Baud115200);
 
     /**
    * @brief Zatrzymuje komunikację (zamyka port).
@@ -84,6 +84,11 @@ public:
    * @param value Wartość typu float do wysłania.
    */
     void sendData(DataType type, float value);
+
+    bool isOpen() const;
+
+    void handleError(QSerialPort::SerialPortError error);
+
 signals:
     /**
    * @brief Sygnał emitowany po odebraniu i sparsowaniu poprawnej ramki.
@@ -96,6 +101,9 @@ signals:
    * @param error Treść komunikatu błędu.
    */
     void errorOccurred(const QString &error);
+
+    void portDisconnected();
+
 private slots:
     /**
    * @brief Slot wywoływany automatycznie przy dostępnych danych na porcie

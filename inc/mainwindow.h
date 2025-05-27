@@ -20,6 +20,7 @@
 #include <QVBoxLayout>
 #include <QtCharts>
 #include "chartsmanager.h"
+#include <QSerialPortInfo>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -42,7 +43,7 @@ public:
     /**
    * @brief Konstruktor głównego okna.
    */
-    MainWindow(QString portName, QWidget *parent = nullptr);
+    MainWindow(QWidget *parent = nullptr);
     /**
    * @brief Destruktor — zwalnia zasoby.
    */
@@ -68,6 +69,10 @@ private slots:
     void on_buttonStartStop_clicked();
     void on_buttonToggleMode_clicked();
     void on_buttonSetRPM_clicked();
+    void on_ConnectPortClicked();
+
+    void refreshSerialPortList();
+
     /**
     * @brief Ustawia kolory etykiet w GUI.
     */
@@ -79,7 +84,17 @@ private slots:
     void updateCharts() const;
 
     void updateGUI() const;
+
+    void handlePortDisconnected();
+
+    // void on_buttonSavePID_clicked();
 private:
+
+    void connectSignals();
+    void configureInitialMode();
+    void setupValidators();
+    void setupCharts();
+    void setupTimers();
 
     Ui::MainWindow *ui;                 ///< Interfejs użytkownika
     SerialReader *serialReader;        ///< Komunikacja z ESP32
@@ -89,7 +104,10 @@ private:
     ChartsManager *charts;             ///< Menedżer wykresów
     SerialData latestData;             ///< Ostatnio odebrane dane
     bool isManualMode = true;
-    bool isMotorRunning = false;
+    bool isMotorRunning = false;QString currentPortName;
+    qint32 currentBaudRate = 115200; // domyślna wartość
+    bool isPortConnected = false;
+
 
 
 };

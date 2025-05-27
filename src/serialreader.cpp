@@ -8,15 +8,18 @@
 // handleReadyRead.
 SerialReader::SerialReader(QObject *parent) : QObject(parent) {
     // Po otrzymaniu nowych danych wywołuje funkcję handleReadyRead()
-    connect(&serial, &QSerialPort::readyRead, this,
-            &SerialReader::handleReadyRead);
+    connect(&serial, &QSerialPort::readyRead, this, &SerialReader::handleReadyRead);
+
+    // Jeśli pojawi się jakikolwiek bląd z połączenie wywołaj handleError
+    connect(&serial, &QSerialPort::errorOccurred, this, &SerialReader::handleError);
+
 }
 
 // Ustawia parametry portu szeregowego i otwiera połączenie.
 // Jeśli otwarcie się nie powiedzie, emituje sygnał errorOccurred().
-void SerialReader::start(const QString &portName) {
+void SerialReader::start(const QString &portName, int baudRate) {
     serial.setPortName(portName);
-    serial.setBaudRate(QSerialPort::Baud115200);
+    serial.setBaudRate(baudRate);
     serial.setDataBits(QSerialPort::Data8);
     serial.setParity(QSerialPort::NoParity);
     serial.setStopBits(QSerialPort::OneStop);
@@ -128,6 +131,12 @@ void SerialReader::sendData(DataType type, float value) {
     if (type == PWM) {
         value = static_cast<uint8_t>(value);
     }
+    if(type == mode){
+        if(value == 0.0f){
+            qDebug() << "Wysyłam tryb manual";
+        }else
+            qDebug()<< "Wysyłam tryb auto";
+    }
     memcpy(frame.begin() + 2, &value, sizeof(quint32));
 
     // Liczymy checksum: XOR z bajtów od 0 do 5 (bez samej sumy)
@@ -141,5 +150,18 @@ void SerialReader::sendData(DataType type, float value) {
     // Wymuś opróżnienie bufora
     serial.flush();
 
-    qDebug() << "Wysłano ramkę:" << frame.toHex(' ').toUpper();
+    // qDebug() << "Wysłano ramkę:" << frame.toHex(' ').toUpper();
 }
+
+bool SerialReader::isOpen() const {
+    return serial.isOpen();
+}
+
+void SerialReader::handleError(QSerialPort::SerialPortError error) {
+    if (error == QSerialPort::ResourceError) {
+        qDebug() << "Urządzenie zostało odłączone!";
+        emit portDisconnected();
+        stop();
+    }
+}
+

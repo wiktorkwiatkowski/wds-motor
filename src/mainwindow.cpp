@@ -10,19 +10,22 @@
  * @param portName Nazwa portu szeregowego, z którym należy się połączyć (np. "COM3", "/dev/ttyUSB0").
  * @param parent Obiekt nadrzędny Qt (zwykle nullptr).
  */
-MainWindow::MainWindow(QString portName, QWidget *parent)
+MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),
     serialReader(new SerialReader(this)), charts(new ChartsManager(this)){
     ui->setupUi(this);
-
-    // Rozpoczęcie komunikacji z ESP32 przez podany port
-    serialReader->start(portName);
-
+    ui->label_8->setText("nie połączono");
+    ui->label_8->setStyleSheet("color: red; font-weight: bold;");
+    refreshSerialPortList();
     // Połączenie sygnału odebrania danych z funkcją obsługującą aktualizację GUI
     connect(serialReader, &SerialReader::newDataReceived, this, &MainWindow::handleNewSerialData);
 
     // Obsługa błędów komunikacji szeregowej
     connect(serialReader, &SerialReader::errorOccurred, this, &MainWindow::handleSerialError);
+
+    // Obsługa błedu przerwania połączenia
+    connect(serialReader, &SerialReader::portDisconnected, this, &MainWindow::handlePortDisconnected);
+
 
     // Obsługa zmiany wartości suwaka PWM
     connect(ui->SliderPWMManual, &QSlider::valueChanged, this, &MainWindow::on_sliderPWMManual_valueChanged);
@@ -31,25 +34,46 @@ MainWindow::MainWindow(QString portName, QWidget *parent)
     connect(ui->pushButtonToggleMode, &QPushButton::clicked, this, &MainWindow::on_buttonToggleMode_clicked);
     connect(ui->pushButtonSetRPM, &QPushButton::clicked, this, &MainWindow::on_buttonSetRPM_clicked);
 
+    // Połącz port
+    connect(ui->pushButtonConnectPort, &QPushButton::clicked, this, &MainWindow::on_ConnectPortClicked);
+    // Odswieżenie portu
+    connect(ui->pushButtonRefreshPorts, &QPushButton::clicked, this, &MainWindow::refreshSerialPortList);
+
+    // Wyłącz opcję auto
     ui->lineEditTargetRPM->setVisible(false);
     ui->pushButtonSetRPM->setVisible(false);
+    ui->labelSetRPMAuto->setVisible(false);
+    ui->labelrpermin->setVisible(false);
+    ui->widgetSetrpermin->setVisible(false);
+
 
 
     // Obsługa przycisku "Zapisz wartości"
     connect(ui->buttonSavePID, &QPushButton::clicked, this, [this]() {
 
-        float kp = ui->editKp->text().toFloat();
-        float ki = ui->editKi->text().toFloat();
-        float kd = ui->editKd->text().toFloat();
+        QString kpText = ui->editKp->text();
+        QString kiText = ui->editKi->text();
+        QString kdText = ui->editKd->text();
 
-        serialReader->sendData(DataType::Kp, kp);
-        serialReader->sendData(DataType::Ki, ki);
-        serialReader->sendData(DataType::Kd, kd);
 
-        // Wyczyść pola po zapisaniu
-        ui->editKp->clear();
-        ui->editKi->clear();
-        ui->editKd->clear();
+        // Jeśli pole nie jest puste, konwertuj i wyślij
+        if (!kpText.isEmpty()) {
+            float kp = kpText.toFloat();
+            serialReader->sendData(DataType::Kp, kp);
+        }
+        if (!kiText.isEmpty()) {
+            float ki = kiText.toFloat();
+            serialReader->sendData(DataType::Ki, ki);
+        }
+        if (!kdText.isEmpty()) {
+            float kd = kdText.toFloat();
+            serialReader->sendData(DataType::Kd, kd);
+        }
+
+        // Czyść tylko pola, które użytkownik edytował
+        if (!kpText.isEmpty()) ui->editKp->clear();
+        if (!kiText.isEmpty()) ui->editKi->clear();
+        if (!kdText.isEmpty()) ui->editKd->clear();
     });
     QDoubleValidator *validator = new QDoubleValidator(this);
     validator->setNotation(QDoubleValidator::StandardNotation);
@@ -71,7 +95,7 @@ MainWindow::MainWindow(QString portName, QWidget *parent)
     charts->setupChart(ChartType::RPM, ui->widgetRPMGraph->layout(), "RPM", "obr/min", 700, 5, false);
     charts->setupChart(ChartType::Voltage, ui->widgetVoltageGraph->layout(), "Napięcie", "V", 8.5, 5, false);
     charts->setupChart(ChartType::Current, ui->widgetCurrentGraph->layout(), "Prąd", "mA", 800, 5, false );
-    charts->setupChart(ChartType::Power, ui->widgetPowerGraph->layout(), "Moc", "mW", 4800, 5, false);
+    charts->setupChart(ChartType::Power, ui->widgetPowerGraph->layout(), "Moc", "mW", 5400, 5, false);
 
     // Timer do cyklicznej aktualizacji GUI i wykresów
     updateChartsTimer = new QTimer(this);
@@ -85,10 +109,6 @@ MainWindow::MainWindow(QString portName, QWidget *parent)
     updateGUITimer->start();
     // Start timera do pomiaru czasu oraz początku uruchomienia aplikacji
     elapsed.start();
-    // Na początku ma być zatrzmany
-    serialReader->sendData(start_stop, 0.0f);
-
-
 }
 
 /**
@@ -203,14 +223,30 @@ void MainWindow::on_buttonStartStop_clicked() {
 
 void MainWindow::on_buttonToggleMode_clicked() {
     isManualMode = !isManualMode;
+    // Zawsze wyłącz silnik przy zmianie trybu
+    serialReader->sendData(DataType::PWM, 0.0f);
+
     ui->pushButtonToggleMode->setText(isManualMode ? "Tryb: Ręczny" : "Tryb: Automatyczny");
+
+    // Jest tryb manualny to wyślij 0, automatyczny 1
+    if (isManualMode == 1){
+        serialReader->sendData(DataType::mode, 0.0f);
+    }else{
+        serialReader->sendData(DataType::mode, 1.0f);
+    }
 
     // Pokaż/ukryj elementy odpowiedniego trybu
     ui->SliderPWMManual->setVisible(isManualMode);
     ui->labelPWMManualValue->setVisible(isManualMode);
+    ui->labelPWM->setVisible(isManualMode);
+
 
     ui->lineEditTargetRPM->setVisible(!isManualMode);
     ui->pushButtonSetRPM->setVisible(!isManualMode);
+    ui->labelSetRPMAuto->setVisible(!isManualMode);
+    ui->labelrpermin->setVisible(!isManualMode);
+    ui->widgetSetrpermin->setVisible(!isManualMode);
+
 }
 
 void MainWindow::on_buttonSetRPM_clicked() {
@@ -218,7 +254,73 @@ void MainWindow::on_buttonSetRPM_clicked() {
     float rpm = ui->lineEditTargetRPM->text().toFloat(&ok);
     if (ok) {
         serialReader->sendData(DataType::RPM, rpm);
+        qDebug() << "wysyłam wartość rpm: "<<rpm;
     } else {
         qDebug() << "Nieprawidłowa wartość RPM";
     }
+    ui->lineEditTargetRPM->clear();
+}
+
+void MainWindow::on_ConnectPortClicked(){
+    if (!isPortConnected) {
+        QString selectedPort = ui->comboBoxSelectPort->currentText();
+        if (selectedPort.isEmpty()) {
+            qDebug() << "Nie wybrano portu";
+            return;
+        }
+
+        // Próbujemy się połączyć
+        serialReader->stop();
+        serialReader->start(selectedPort);
+        if (!serialReader->isOpen()) {
+            qDebug() << "Nie udało się połączyć z portem: " << selectedPort;
+            ui->label_8->setText("nie połączono");
+            ui->label_8->setStyleSheet("color: red; font-weight: bold;");
+            return;
+        }
+
+        // Zaktualizuj GUI
+        currentPortName = selectedPort;
+        currentBaudRate = ui->comboBoxBaudRates->currentText().toInt();
+        ui->label_8->setText("połączono");
+        ui->label_8->setStyleSheet("color: green; font-weight: bold;");
+        ui->pushButtonConnectPort->setText("Rozłącz");
+
+        isPortConnected = true;
+
+    } else {
+        handlePortDisconnected();
+    }
+}
+
+void MainWindow::refreshSerialPortList() {
+    ui->comboBoxSelectPort->clear();
+    const auto ports = QSerialPortInfo::availablePorts();
+    for (const QSerialPortInfo &info : ports) {
+        ui->comboBoxSelectPort->addItem(info.systemLocation());
+    }
+}
+
+void MainWindow::handlePortDisconnected() {
+    isPortConnected = false;
+    ui->label_8->setText("nie połączono");
+    ui->label_8->setStyleSheet("color: red; font-weight: bold;");
+    ui->pushButtonConnectPort->setText("Połącz");
+
+    // Reset stanu silnika
+    isMotorRunning = false;
+    ui->pushButtonStartStop->setText("START");
+
+    // Przywróć domyślny tryb ręczny
+    isManualMode = true;
+    ui->pushButtonToggleMode->setText("Tryb: Ręczny");
+    ui->SliderPWMManual->setVisible(true);
+    ui->labelPWMManualValue->setVisible(true);
+    ui->lineEditTargetRPM->setVisible(false);
+    ui->pushButtonSetRPM->setVisible(false);
+    ui->labelSetRPMAuto->setVisible(false);
+    ui->labelrpermin->setVisible(false);
+    ui->widgetSetrpermin->setVisible(false);
+
+    serialReader->stop();
 }
