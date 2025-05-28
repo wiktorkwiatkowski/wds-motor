@@ -14,99 +14,19 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),
     serialReader(new SerialReader(this)), charts(new ChartsManager(this)){
     ui->setupUi(this);
-    ui->label_8->setText("nie połączono");
-    ui->label_8->setStyleSheet("color: red; font-weight: bold;");
+
+    connectSignals();
+
     refreshSerialPortList();
-    // Połączenie sygnału odebrania danych z funkcją obsługującą aktualizację GUI
-    connect(serialReader, &SerialReader::newDataReceived, this, &MainWindow::handleNewSerialData);
 
-    // Obsługa błędów komunikacji szeregowej
-    connect(serialReader, &SerialReader::errorOccurred, this, &MainWindow::handleSerialError);
+    configureInitialMode();
 
-    // Obsługa błedu przerwania połączenia
-    connect(serialReader, &SerialReader::portDisconnected, this, &MainWindow::handlePortDisconnected);
-
-
-    // Obsługa zmiany wartości suwaka PWM
-    connect(ui->SliderPWMManual, &QSlider::valueChanged, this, &MainWindow::on_sliderPWMManual_valueChanged);
-
-    connect(ui->pushButtonStartStop, &QPushButton::clicked, this, &MainWindow::on_buttonStartStop_clicked);
-    connect(ui->pushButtonToggleMode, &QPushButton::clicked, this, &MainWindow::on_buttonToggleMode_clicked);
-    connect(ui->pushButtonSetRPM, &QPushButton::clicked, this, &MainWindow::on_buttonSetRPM_clicked);
-
-    // Połącz port
-    connect(ui->pushButtonConnectPort, &QPushButton::clicked, this, &MainWindow::on_ConnectPortClicked);
-    // Odswieżenie portu
-    connect(ui->pushButtonRefreshPorts, &QPushButton::clicked, this, &MainWindow::refreshSerialPortList);
-
-    // Wyłącz opcję auto
-    ui->lineEditTargetRPM->setVisible(false);
-    ui->pushButtonSetRPM->setVisible(false);
-    ui->labelSetRPMAuto->setVisible(false);
-    ui->labelrpermin->setVisible(false);
-    ui->widgetSetrpermin->setVisible(false);
-
-
-
-    // Obsługa przycisku "Zapisz wartości"
-    connect(ui->buttonSavePID, &QPushButton::clicked, this, [this]() {
-
-        QString kpText = ui->editKp->text();
-        QString kiText = ui->editKi->text();
-        QString kdText = ui->editKd->text();
-
-
-        // Jeśli pole nie jest puste, konwertuj i wyślij
-        if (!kpText.isEmpty()) {
-            float kp = kpText.toFloat();
-            serialReader->sendData(DataType::Kp, kp);
-        }
-        if (!kiText.isEmpty()) {
-            float ki = kiText.toFloat();
-            serialReader->sendData(DataType::Ki, ki);
-        }
-        if (!kdText.isEmpty()) {
-            float kd = kdText.toFloat();
-            serialReader->sendData(DataType::Kd, kd);
-        }
-
-        // Czyść tylko pola, które użytkownik edytował
-        if (!kpText.isEmpty()) ui->editKp->clear();
-        if (!kiText.isEmpty()) ui->editKi->clear();
-        if (!kdText.isEmpty()) ui->editKd->clear();
-    });
-    QDoubleValidator *validator = new QDoubleValidator(this);
-    validator->setNotation(QDoubleValidator::StandardNotation);
-    validator->setDecimals(4); // np. 4 miejsca po przecinku
-    // Wymuś kropkę jako separator dziesiętny
-    validator->setLocale(QLocale::English);  // lub QLocale(QLocale::English)
-
-
-    ui->editKp->setValidator(validator);
-    ui->editKi->setValidator(validator);
-    ui->editKd->setValidator(validator);
-    validator->setBottom(0.0); // tylko dodatnie wartości
-
-
+    setupValidators();
 
     setLabelsColors();
     // Inicjalizacja wykresów
-    charts->setupChart(ChartType::PWM, ui->widgetPWMGraph->layout(), "PWM", "PWM [%]", 110, 5, false);
-    charts->setupChart(ChartType::RPM, ui->widgetRPMGraph->layout(), "RPM", "obr/min", 700, 5, false);
-    charts->setupChart(ChartType::Voltage, ui->widgetVoltageGraph->layout(), "Napięcie", "V", 8.5, 5, false);
-    charts->setupChart(ChartType::Current, ui->widgetCurrentGraph->layout(), "Prąd", "mA", 800, 5, false );
-    charts->setupChart(ChartType::Power, ui->widgetPowerGraph->layout(), "Moc", "mW", 5400, 5, false);
-
-    // Timer do cyklicznej aktualizacji GUI i wykresów
-    updateChartsTimer = new QTimer(this);
-    updateChartsTimer->setInterval(10); // co 10 ms
-    connect(updateChartsTimer, &QTimer::timeout, this, &MainWindow::updateCharts);
-    updateChartsTimer->start();
-
-    updateGUITimer = new QTimer(this);
-    updateGUITimer->setInterval(500); // co 10 ms
-    connect(updateGUITimer, &QTimer::timeout, this, &MainWindow::updateGUI);
-    updateGUITimer->start();
+    setupCharts();
+    setupTimers();
     // Start timera do pomiaru czasu oraz początku uruchomienia aplikacji
     elapsed.start();
 }
@@ -323,4 +243,97 @@ void MainWindow::handlePortDisconnected() {
     ui->widgetSetrpermin->setVisible(false);
 
     serialReader->stop();
+}
+
+void MainWindow::on_buttonSavePID_clicked() {
+    QString kpText = ui->editKp->text();
+    QString kiText = ui->editKi->text();
+    QString kdText = ui->editKd->text();
+
+    if (!kpText.isEmpty()) {
+        float kp = kpText.toFloat();
+        serialReader->sendData(DataType::Kp, kp);
+        ui->editKp->clear();
+    }
+    if (!kiText.isEmpty()) {
+        float ki = kiText.toFloat();
+        serialReader->sendData(DataType::Ki, ki);
+        ui->editKi->clear();
+    }
+    if (!kdText.isEmpty()) {
+        float kd = kdText.toFloat();
+        serialReader->sendData(DataType::Kd, kd);
+        ui->editKd->clear();
+    }
+}
+
+void MainWindow::connectSignals(){
+    connect(serialReader, &SerialReader::newDataReceived, this, &MainWindow::handleNewSerialData);
+
+    // Obsługa błędów komunikacji szeregowej
+    connect(serialReader, &SerialReader::errorOccurred, this, &MainWindow::handleSerialError);
+
+    // Obsługa błedu przerwania połączenia
+    connect(serialReader, &SerialReader::portDisconnected, this, &MainWindow::handlePortDisconnected);
+
+
+    // Obsługa zmiany wartości suwaka PWM
+    connect(ui->SliderPWMManual, &QSlider::valueChanged, this, &MainWindow::on_sliderPWMManual_valueChanged);
+
+    connect(ui->pushButtonStartStop, &QPushButton::clicked, this, &MainWindow::on_buttonStartStop_clicked);
+    connect(ui->pushButtonToggleMode, &QPushButton::clicked, this, &MainWindow::on_buttonToggleMode_clicked);
+    connect(ui->pushButtonSetRPM, &QPushButton::clicked, this, &MainWindow::on_buttonSetRPM_clicked);
+
+    // Połącz port
+    connect(ui->pushButtonConnectPort, &QPushButton::clicked, this, &MainWindow::on_ConnectPortClicked);
+    // Odswieżenie portu
+    connect(ui->pushButtonRefreshPorts, &QPushButton::clicked, this, &MainWindow::refreshSerialPortList);
+
+    // Obsługa przycisku "Zapisz wartości"
+    connect(ui->buttonSavePID, &QPushButton::clicked, this, &MainWindow::on_buttonSavePID_clicked);
+}
+
+void MainWindow::configureInitialMode() {
+    ui->label_8->setText("nie połączono");
+    ui->label_8->setStyleSheet("color: red; font-weight: bold;");
+
+    ui->lineEditTargetRPM->setVisible(false);
+    ui->pushButtonSetRPM->setVisible(false);
+    ui->labelSetRPMAuto->setVisible(false);
+    ui->labelrpermin->setVisible(false);
+    ui->widgetSetrpermin->setVisible(false);
+}
+
+void MainWindow::setupValidators() {
+    QDoubleValidator *validator = new QDoubleValidator(this);
+    validator->setNotation(QDoubleValidator::StandardNotation);
+    validator->setDecimals(4);
+    validator->setLocale(QLocale::English);
+    validator->setBottom(0.0);
+
+    ui->editKp->setValidator(validator);
+    ui->editKi->setValidator(validator);
+    ui->editKd->setValidator(validator);
+}
+
+
+void MainWindow::setupCharts() {
+    charts->setupChart(ChartType::PWM, ui->widgetPWMGraph->layout(), "PWM", "PWM [%]", 110, 5, false);
+    charts->setupChart(ChartType::RPM, ui->widgetRPMGraph->layout(), "RPM", "obr/min", 700, 5, false);
+    charts->setupChart(ChartType::Voltage, ui->widgetVoltageGraph->layout(), "Napięcie", "V", 8.5, 5, false);
+    charts->setupChart(ChartType::Current, ui->widgetCurrentGraph->layout(), "Prąd", "mA", 800, 5, false);
+    charts->setupChart(ChartType::Power, ui->widgetPowerGraph->layout(), "Moc", "mW", 5400, 5, false);
+
+}
+
+void MainWindow::setupTimers() {
+    updateChartsTimer = new QTimer(this);
+    updateChartsTimer->setInterval(10);
+    connect(updateChartsTimer, &QTimer::timeout, this, &MainWindow::updateCharts);
+    updateChartsTimer->start();
+
+    updateGUITimer = new QTimer(this);
+    updateGUITimer->setInterval(500);
+    connect(updateGUITimer, &QTimer::timeout, this, &MainWindow::updateGUI);
+    updateGUITimer->start();
 }

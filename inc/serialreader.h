@@ -21,15 +21,15 @@
  * bieżące nastawy regulatora PID (Kp, Ki, Kd).
  */
 struct SerialData {
-    float rpm;     ///< Obroty silnika [obr/min]
-    uint8_t pwm;   ///< Wypełnienie PWM [%]
-    float current; ///< Prąd [mA]
-    float voltage; ///< Napięcie [V]
-    float power;   ///< Moc [W]
-    float kp;      ///< Wzmocnienie proporcjonalne regulatora PID
-    float ki;      ///< Wzmocnienie całkujące regulatora PID
-    float kd;      ///< Wzmocnienie różniczkujące regulatora PID
-    uint8_t mode;  ///< Tryb pracy: 0 - ręczny, 1 - automatyczny
+    float rpm = 0.0f;     ///< Obroty silnika [obr/min]
+    uint8_t pwm = 0.0f;   ///< Wypełnienie PWM [%]
+    float current = 0.0f; ///< Prąd [mA]
+    float voltage = 0.0f; ///< Napięcie [V]
+    float power = 0.0f;   ///< Moc [W]
+    float kp = 0.0f;      ///< Wzmocnienie proporcjonalne regulatora PID
+    float ki = 0.0f;      ///< Wzmocnienie całkujące regulatora PID
+    float kd = 0.0f;      ///< Wzmocnienie różniczkujące regulatora PID
+    uint8_t mode = 0.0f;  ///< Tryb pracy: 0 - ręczny, 1 - automatyczny
 };
 
 /**

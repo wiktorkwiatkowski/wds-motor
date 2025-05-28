@@ -70,6 +70,7 @@ private slots:
     void on_buttonToggleMode_clicked();
     void on_buttonSetRPM_clicked();
     void on_ConnectPortClicked();
+    void on_buttonSavePID_clicked();
 
     void refreshSerialPortList();
 
