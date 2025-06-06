@@ -26,7 +26,6 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(wds_motor
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        inc/portdialog.h src/portdialog.cpp ui/portdialog.ui
         inc/serialreader.h src/serialreader.cpp
         inc/chartsmanager.h src/chartsmanager.cpp
     )

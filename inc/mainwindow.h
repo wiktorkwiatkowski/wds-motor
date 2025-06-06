@@ -1,3 +1,4 @@
+
 /**
  * @file mainwindow.h
  * @brief Deklaracja klasy MainWindow — głównego okna aplikacji GUI.
@@ -66,12 +67,34 @@ private slots:
    */
     void on_sliderPWMManual_valueChanged(float value);
 
+    /**
+     * @brief Slot obsługujący przycisk start/stop silnika.
+     */
     void on_buttonStartStop_clicked();
+
+    /**
+     * @brief Slot przełączający tryb pracy (ręczny/automatyczny).
+     */
     void on_buttonToggleMode_clicked();
+
+    /**
+     * @brief Slot obsługujący zadanie nowej wartości RPM.
+     */
     void on_buttonSetRPM_clicked();
+
+    /**
+     * @brief Slot obsługujący nawiązywanie i zrywanie połączenia z portem szeregowym.
+     */
     void on_ConnectPortClicked();
+
+    /**
+     * @brief Slot obsługujący przycisk zapisu wartości PID.
+     */
     void on_buttonSavePID_clicked();
 
+    /**
+     * @brief Odświeża listę dostępnych portów szeregowych.
+     */
     void refreshSerialPortList();
 
     /**
@@ -84,32 +107,55 @@ private slots:
     */
     void updateCharts() const;
 
+    /**
+     * @brief Aktualizuje wartości i etykiety w interfejsie użytkownika.
+     */
     void updateGUI() const;
 
+    /**
+     * @brief Obsługa zdarzenia rozłączenia portu szeregowego.
+     */
     void handlePortDisconnected();
 
-    // void on_buttonSavePID_clicked();
 private:
 
+    /**
+     * @brief Łączy sygnały i sloty aplikacji.
+     */
     void connectSignals();
+
+    /**
+     * @brief Konfiguruje początkowy tryb widoku GUI.
+     */
     void configureInitialMode();
+
+    /**
+     * @brief Ustawia walidatory dla pól wejściowych.
+     */
     void setupValidators();
+
+    /**
+     * @brief Inicjalizuje wykresy.
+     */
     void setupCharts();
+
+    /**
+     * @brief Inicjalizuje i uruc
+     * hamia timery GUI.
+     */
     void setupTimers();
 
     Ui::MainWindow *ui;                 ///< Interfejs użytkownika
-    SerialReader *serialReader;        ///< Komunikacja z ESP32
-    QElapsedTimer elapsed;             ///< Timer od startu aplikacji
-    QTimer *updateChartsTimer;               ///< Timer GUI i wykresów
-    QTimer *updateGUITimer;
-    ChartsManager *charts;             ///< Menedżer wykresów
-    SerialData latestData;             ///< Ostatnio odebrane dane
-    bool isManualMode = true;
-    bool isMotorRunning = false;QString currentPortName;
-    qint32 currentBaudRate = 115200; // domyślna wartość
-    bool isPortConnected = false;
-
-
-
+    SerialReader *serialReader;         ///< Obiekt komunikacji szeregowej z ESP32
+    QElapsedTimer elapsed;              ///< Timer odmierzający czas od uruchomienia aplikacji
+    QTimer *updateChartsTimer;          ///< Timer do odświeżania wykresów
+    QTimer *updateGUITimer;             ///< Timer do odświeżania GUI
+    ChartsManager *charts;              ///< Menedżer obsługujący wykresy
+    SerialData latestData;              ///< Ostatnio odebrane dane z ESP32
+    bool isManualMode = true;           ///< Flaga trybu ręcznego
+    bool isMotorRunning = false;        ///< Flaga stanu silnika (czy działa)
+    QString currentPortName;            ///< Nazwa aktualnie używanego portu szeregowego
+    qint32 currentBaudRate = 115200;    ///< Aktualna prędkość transmisji (domyślnie 115200)
+    bool isPortConnected = false;       ///< Flaga informująca o stanie połączenia szeregowego
 };
 #endif // MAINWINDOW_H

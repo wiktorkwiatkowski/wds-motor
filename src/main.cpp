@@ -8,7 +8,6 @@
  */
 
 #include "../inc/mainwindow.h"
-#include "../inc/portdialog.h"
 #include <QApplication>
 #include <QLocale>
 #include <QTranslator>
@@ -27,25 +26,6 @@
  */
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
-
-    // // Tworzymy okno dialogowe do wyboru portu
-    // PortDialog dialog;
-    // dialog.setWindowTitle("Wybór Portu");
-
-    // // Uruchamienie dialog'u i sprawdzenie czy użytkownik kliknął "Połącz"
-    // if (dialog.exec() == QDialog::Accepted) {
-    //     QMessageBox::information(
-    //         nullptr, QObject::tr("Połączenie"),
-    //         QObject::tr("Połączono z portem: %1").arg(dialog.selectedPort()));
-    // } else {
-    //     // Jeśli użytkownik anulował, koniec aplikacji
-    //     return 0;
-    // }
-
-    // // Pobranie nazwy wybranego portu
-    // QString selectedPort = dialog.selectedPort();
-    // qDebug() << "Wybrano port: " << selectedPort;
-
     // Stworzenie i uruchamienie głównego okna aplikacji
     MainWindow w;
     w.setWindowTitle("Sterowanie silnikiem");
