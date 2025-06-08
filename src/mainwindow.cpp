@@ -1,19 +1,23 @@
+/**
+ * @file mainwindow.cpp
+ * @brief Implementacja klasy MainWindow.
+ *
+ * Klasa MainWindow obsługuje interfejs graficzny aplikacji sterującej silnikiem.
+ * Odpowiada za komunikację z mikrokontrolerem (poprzez SerialReader), wizualizację parametrów
+ * pracy silnika na wykresach (ChartsManager), obsługę przycisków, suwaków oraz zarządzanie językiem interfejsu.
+ */
+
 #include "../inc/mainwindow.h"
 #include "../ui/ui_mainwindow.h"
 
 /**
  * @brief Konstruktor klasy MainWindow.
  *
- *  Tworzy interfejs użytkownika oraz inicjalizuje wszystkie elementy aplikacji:
- * - Łączy sygnały z odpowiednimi slotami,
- * - Odswieża listę dostępnych portów,
- * - Ustawia tryb początkowy interfejsu (ręczny, brak połączenia),
- * - Ustawia walidatory pól PID,
- * - Ustawia kolory etykiet,
- * - Tworzy i konfiguruje wykresy,
- * - Konfiguruje timery aktualizujące GUI i wykresy.
- *
- * Na końcu uruchamia zegar odmierzający czas od startu aplikacji.
+ * Tworzy i konfiguruje interfejs użytkownika oraz inicjalizuje pozostałe komponenty:
+ * - SerialReader (komunikacja szeregowa),
+ * - ChartsManager (wykresy),
+ * - timery do aktualizacji GUI i wykresów.
+ * Na końcu uruchamia licznik czasu od startu aplikacji.
  */
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),
@@ -29,17 +33,18 @@ MainWindow::MainWindow(QWidget *parent)
     setupValidators();
 
     setLabelsColors();
-    // Inicjalizacja wykresów
+
     setupCharts();
+
     setupTimers();
-    // Start timera do pomiaru czasu oraz początku uruchomienia aplikacji
+
     elapsed.start();
 }
 
 /**
  * @brief Destruktor klasy MainWindow.
  *
- * Zatrzymuje komunikację szeregową i zwalnia zasoby GUI.
+ * Zatrzymuje komunikację szeregowa i zwalnia zasoby GUI.
  */
 MainWindow::~MainWindow() {
     // Zamknięcie portu szeregowego i zwolnienie pamięci interfejsu
@@ -48,11 +53,7 @@ MainWindow::~MainWindow() {
 }
 
 /**
- *
- * Funkcja ta zapisuje dane odebrane z ESP32 w polu latestData.
- * Dane te są następnie wykorzystywane do odświeżania GUI i wykresów.
- *
- * @param data Struktura zawierająca dane z ramki (RPM, PWM, napięcie, prąd, moc, PID, tryb).
+ * Zapisuje dane w polu latestData, dane te są wykorzystywane do aktualizacji GUI i wykresów.
  */
 void MainWindow::handleNewSerialData(const SerialData &data) {
     // qDebug() << "RPM:" << data.rpm << "PWM:" << data.pwm
@@ -63,30 +64,19 @@ void MainWindow::handleNewSerialData(const SerialData &data) {
 }
 
 /**
- * @brief Obsługuje błędy komunikacji szeregowej.
- *
- * Wyświetla komunikat błędu w konsoli debug Qt.
- *
- * @param error Treść błędu.
+ * Wyświetla błąd w konsoli debug Qt.
  */
 void MainWindow::handleSerialError(const QString &error) {
     qDebug() << "Błąd:" << error;
 }
 
 /**
- *
- * Funkcja ta:
- * - wyświetla nową wartość PWM na etykiecie,
- * - przelicza wartość z zakresu 0–100% na 0–255,
- * - wysyła tę wartość do ESP32 jako sygnał sterujący.
- *
- * @param value Wartość wypełnienia PWM w zakresie 0–100%.
+ * Wyświetla nową wartość na etykiecie i wysyła ją do mikrokontrolera w formie skalowanej (0-255).
  */
 void MainWindow::on_sliderPWMManual_valueChanged(float value) {
-    // Wyświetl wartość na etykiecie
     ui->labelPWMManualValue->setText(QString::number(value) + "%");
 
-    // Skalowanie: 100% -> 25 jednostek
+    // Skalowanie
     float scaledValue = value * 2.55f;
 
     // Wyślij do ESP32
@@ -94,10 +84,7 @@ void MainWindow::on_sliderPWMManual_valueChanged(float value) {
 }
 
 /**
- * @brief Ustawia kolory etykiet z wartościami pomiarowymi w GUI.
- *
- * Każda wartość ma przypisany kolor zgodny z kolorem linii na wykresie.
- *
+ * Ułatwia wizualne skojarzenie wartości z liniami na wykresach.
  */
 void MainWindow::setLabelsColors() const{
     ui->labelColorBoxV->setStyleSheet("background-color: blue;");
@@ -109,9 +96,7 @@ void MainWindow::setLabelsColors() const{
 }
 
 /**
- *
- * Funkcja wywoływana co 10 ms przez timer. Dodaje nowe punkty do wykresów z uwzględnieniem czasu działania aplikacji.
- *
+ * Dodaje nowe punkty do wykresów (PWM, RPM, prąd, napięcie, moc) z aktualnym czasem.
  */
 void MainWindow::updateCharts() const{
     // Aktualizacja wykresów
@@ -126,14 +111,7 @@ void MainWindow::updateCharts() const{
 }
 
 /**
- *
- * Funkcja ustawia aktualne wartości pomiarowe w polach tekstowych:
- * - RPM,
- * - prąd,
- * - napięcie,
- * - moc,
- * - PWM (przeskalowane),
- * - współczynniki PID (Kp, Ki, Kd).
+ * Wyświetla aktualne wartości parametrów pracy silnika i parametrów PID.
  */
 void MainWindow::updateGUI() const{
     // Ustawienie wartości w GUI
@@ -149,20 +127,16 @@ void MainWindow::updateGUI() const{
 }
 
 /**
- *
- * Funkcja przełącza stan pracy silnika pomiędzy uruchomieniem a zatrzymaniem.
- * Zmienna isMotorRunning jest przełączana, co powoduje:
- * - zmianę etykiety przycisku na "START" lub "STOP",
- * - wysłanie odpowiedniego sygnału sterującego do ESP32 (1.0 = start, 0.0 = stop).
+ * Przełącza stan pracy silnika i wysyła odpowiednie polecenie do mikrokontrolera.
  */
 void MainWindow::on_buttonStartStop_clicked() {
     isMotorRunning = !isMotorRunning;
     ui->pushButtonStartStop->setText(isMotorRunning ? "STOP" : "START");
 
-    // Wyślij do ESP32: np. 1 = start, 0 = stop
     serialReader->sendData(DataType::start_stop, isMotorRunning ? 1.0f : 0.0f);
     serialReader->sendData(DataType::PWM, 0.0f);
     serialReader->sendData(DataType::RPM, 0.0f);
+
     // Wyzeruj suwak PWM po naciśnięciu STOP
     if (!isMotorRunning) {
         ui->SliderPWMManual->setValue(0);
@@ -170,18 +144,17 @@ void MainWindow::on_buttonStartStop_clicked() {
 }
 
 /**
- *
- * Zmienia tryb sterowania z ręcznego na automatyczny (i odwrotnie).
- * Wykonywane czynności:
- * - Zatrzymanie silnika (wysłanie PWM = 0),
- * - Zmiana tekstu przycisku z informacją o aktualnym trybie,
- * - Wysłanie informacji o trybie do ESP32 (0 = manualny, 1 = automatyczny),
- * - Pokazanie lub ukrycie odpowiednich elementów GUI zależnie od trybu.
+ * Funkcja:
+ * - zmienia tryb pracy aplikacji (manualny <-> automatyczny),
+ * - zawsze zatrzymuje silnik przy zmianie trybu (wysyła PWM = 0),
+ * - wysyła odpowiednie polecenie trybu do mikrokontrolera,
+ * - w trybie automatycznym dodatkowo resetuje żądaną prędkość RPM,
+ * - ukrywa lub pokazuje odpowiednie elementy GUI w zależności od trybu.
  */
 void MainWindow::on_buttonToggleMode_clicked() {
+    serialReader->sendData(DataType::PWM, 0.0f);
     isManualMode = !isManualMode;
     // Zawsze wyłącz silnik przy zmianie trybu
-    serialReader->sendData(DataType::PWM, 0.0f);
 
     ui->pushButtonToggleMode->setText(isManualMode ? tr("Tryb: Ręczny") : tr("Tryb: Automatyczny"));
 
@@ -191,6 +164,7 @@ void MainWindow::on_buttonToggleMode_clicked() {
     }else{
         serialReader->sendData(DataType::mode, 1.0f);
         serialReader->sendData(DataType::RPM, 0.0f);
+        ui->SliderPWMManual->setValue(0);
     }
 
     // Pokaż/ukryj elementy odpowiedniego trybu
@@ -208,10 +182,7 @@ void MainWindow::on_buttonToggleMode_clicked() {
 }
 
 /**
- * @brief Slot obsługujący przycisk ustawiania zadanej wartości RPM.
- *
- * Funkcja odczytuje wartość wpisaną przez użytkownika w polu lineEditTargetRPM,
- * konwertuje ją na float i wysyła jako żądaną prędkość obrotową silnika do ESP32.
+ * Odczytuje wartość RPM z pola tekstowego i wysyła ją do mikrokontrolera.
  */
 void MainWindow::on_buttonSetRPM_clicked() {
     bool ok;
@@ -222,13 +193,9 @@ void MainWindow::on_buttonSetRPM_clicked() {
 }
 
 /**
- *
- * Jeśli nie ma aktywnego połączenia, funkcja:
- * - sprawdza, czy wybrano port,
- * - uruchamia komunikację przez SerialReader,
- * - aktualizuje GUI (zielona etykieta, zmiana tekstu przycisku, zapis portu i prędkości).
- *
- * Jeśli port był już połączony, następuje jego rozłączenie przez handlePortDisconnected().
+ * Nawiązuje lub kończy połączenie z wybranym portem szeregowym w zależności od aktualnego stanu.
+ * Po poprawnym połączeniu aktualizuje GUI oraz zapisuje nazwę i prędkość portu.
+ * W przypadku rozłączenia wywołuje handlePortDisconnected().
  */
 void MainWindow::on_ConnectPortClicked(){
     if (!isPortConnected) {
@@ -263,9 +230,11 @@ void MainWindow::on_ConnectPortClicked(){
 }
 
 /**
- *
- * Czyści zawartość comboBoxSelectPort i dodaje tylko porty,
- * których nazwa zawiera "ttyUSB", "ttyACM" lub "COM".
+ * Odświeża listę dostępnych portów szeregowych.Funkcja czyści zawartość comboBoxSelectPort i dodaje tylko porty,
+ * których nazwa zawiera jedno z poniższych wyrażeń:
+ * - "ttyUSB",
+ * - "ttyACM",
+ * - "COM.
  */
 void MainWindow::refreshSerialPortList() {
     ui->comboBoxSelectPort->clear();
@@ -282,16 +251,16 @@ void MainWindow::refreshSerialPortList() {
 }
 
 /**
- *
- * Funkcja wykonywana w przypadku:
+ * Funkcja wywoływana w przypadku:
  * - ręcznego kliknięcia "Rozłącz",
- * - nagłego odłączenia urządzenia.
+ * - nagłego odłączenia urządzenia (sygnał portDisconnected z SerialReader).
  *
  * Działania:
- * - zmiana stanu GUI (czerwona etykieta, zmiana tekstu przycisku),
- * - powrót do trybu ręcznego i wyłączenie silnika,
- * - ukrycie elementów trybu automatycznego,
- * - zatrzymanie komunikacji przez serialReader.
+ * - aktualizuje GUI (zmiana etykiety statusu na "nie połączono", zmiana tekstu przycisku "Połącz"),
+ * - resetuje stan pracy silnika (wyłącza silnik, ustawia przycisk Start/Stop na "START"),
+ * - przywraca domyślny tryb ręczny oraz układ elementów GUI,
+ * - resetuje wartość suwaka PWM do 0,
+ * - zatrzymuje komunikację przez SerialReader.
  */
 void MainWindow::handlePortDisconnected() {
     isPortConnected = false;
@@ -318,11 +287,7 @@ void MainWindow::handlePortDisconnected() {
 }
 
 /**
- *
- * Funkcja odczytuje zawartość pól editKp, editKi oraz editKd.
- * Jeśli dane pole nie jest puste, jego zawartość konwertowana jest na float
- * i przesyłana do ESP32 jako wartość odpowiedniego współczynnika PID.
- * Po wysłaniu zawartość pól zostaje wyczyszczona.
+ * Odczytuje wartości Kp, Ki, Kd i wysyła je do mikrokontrolera.
  */
 void MainWindow::on_buttonSavePID_clicked() {
     QString kpText = ui->editKp->text();
@@ -347,12 +312,9 @@ void MainWindow::on_buttonSavePID_clicked() {
 }
 
 /**
- *
- * Przypisuje funkcje do zdarzeń związanych z:
- * - odbiorem danych z ESP32,
- * - błędami i rozłączeniem portu,
- * - zmianą suwaka PWM,
- * - przyciskami GUI (START/STOP, tryb, ustaw RPM, połącz, odśwież porty, zapisz PID).
+ * Funkcja łączy sygnały interfejsu użytkownika (przyciski, suwaki, akcje menu) z odpowiednimi slotami
+ * obsługującymi logikę aplikacji. Umożliwia również obsługę komunikacji z mikrokontrolerem (odbiór danych,
+ * obsługa błędów, obsługa rozłączenia portu). Funkcja wywoływana jest podczas inicjalizacji MainWindow.
  */
 void MainWindow::connectSignals(){
     connect(serialReader, &SerialReader::newDataReceived, this, &MainWindow::handleNewSerialData);
@@ -385,11 +347,7 @@ void MainWindow::connectSignals(){
 }
 
 /**
- *
- * Funkcja ustawia domyślny stan jako:
- * - brak połączenia (czerwona etykieta),
- * - tryb ręczny aktywny,
- * - ukrycie elementów trybu automatycznego.
+ * Ustawia stan początkowy: tryb ręczny, brak połączenia, ukryte elementy trybu automatycznego.
  */
 void MainWindow::configureInitialMode() {
     ui->label_8->setText(tr("nie połączono"));
@@ -403,9 +361,7 @@ void MainWindow::configureInitialMode() {
 }
 
 /**
- *
- * Wszystkie pola (Kp, Ki, Kd) akceptują tylko dodatnie liczby zmiennoprzecinkowe
- * z maksymalnie 4 miejscami po przecinku.
+ * Pozwala tylko na wpisywanie dodatnich liczb zmiennoprzecinkowych do 4 miejsc po przecinku.
  */
 void MainWindow::setupValidators() {
     QDoubleValidator *validator = new QDoubleValidator(this);
@@ -420,18 +376,8 @@ void MainWindow::setupValidators() {
 }
 
 /**
- *
- * Ustawiane są osobne wykresy dla parametrów:
- * - PWM,
- * - RPM,
- * - napięcie,
- * - prąd,
- * - moc.
- *
- * Każdy wykres tworzony jest przez metodę ChartsManager::setupChart()
- * z określonymi parametrami osi Y i tytułem.
+ * Ustawia zakresy, kolory, tytuły wykresów dla parametrów: PWM, RPM, napięcie, prąd, moc.
  */
-
 void MainWindow::setupCharts() {
     charts->setupChart(ChartType::PWM, ui->widgetPWMGraph->layout(), "PWM", "PWM [%]", 110, 5, false);
     charts->setupChart(ChartType::RPM, ui->widgetRPMGraph->layout(), "RPM", "obr/min", 600, 5, false);
@@ -442,12 +388,9 @@ void MainWindow::setupCharts() {
 }
 
 /**
- *
- * Tworzone są dwa timery:
- * - updateChartsTimer: odświeża wykresy co 10 ms,
- * - updateGUITimer: aktualizuje pola tekstowe co 500 ms.
- *
- * Timery uruchamiane są natychmiast po konfiguracji.
+ * Timery:
+ * - updateChartsTimer -> odświeża wykresy co 10 ms,
+ * - updateGUITimer -> odświeża dane w polach tekstowych co 500 ms.
  */
 void MainWindow::setupTimers() {
     updateChartsTimer = new QTimer(this);
@@ -461,6 +404,9 @@ void MainWindow::setupTimers() {
     updateGUITimer->start();
 }
 
+/**
+ * Ładuje plik tłumaczenia wds_motor_pl.qm i odświeża GUI.
+ */
 void MainWindow::switchToPolish() {
     qApp->removeTranslator(&translator);
     if (translator.load("../../i18n/wds_motor_pl.qm")) {
@@ -475,6 +421,9 @@ void MainWindow::switchToPolish() {
 
 }
 
+/**
+ * Ładuje plik tłumaczenia wds_motor_en_US.qm i odświeża GUI.
+ */
 void MainWindow::switchToEnglish() {
     qApp->removeTranslator(&translator);
     if (translator.load("../../i18n/wds_motor_en_US.qm")) {
@@ -489,6 +438,9 @@ void MainWindow::switchToEnglish() {
 
 }
 
+/**
+ * Funkcja wywoływana automatycznie po zmianie języka GUI.
+ */
 void MainWindow::retranslateCharts() {
     charts->setTitle(ChartType::Voltage, tr("Napięcie"));
     charts->setSeriesName(ChartType::Voltage, tr("Napięcie"));

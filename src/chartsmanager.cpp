@@ -1,18 +1,25 @@
+/**
+ * @file chartsmanager.cpp
+ * @brief Implementacja klasy ChartsManager.
+ *
+ * Klasa ChartsManager odpowiada za tworzenie i zarządzanie dynamicznymi wykresami QtCharts
+ * dla parametrów pracy silnika: PWM, RPM, napięcie, prąd, moc.
+ * Umożliwia dynamiczne dodawanie punktów, automatyczne przewijanie osi X,
+ * usuwanie starych punktów oraz zmianę tytułów i opisów wykresów.
+ */
+
 #include "../inc/chartsmanager.h"
 
+/**
+ * Inicjalizuje obiekt ChartsManager.
+ * Początkowo mapa wykresów (charts) jest pusta, wykresy są dodawane dynamicznie przez setupChart().
+ */
 ChartsManager::ChartsManager(QObject *parent) : QObject{parent}{}
 
 /**
- *
- * Tworzy wykres o zadanym typie i konfiguruje jego oś X i Y. Następnie dodaje wykres do wskazanego
- * layoutu w interfejsie Qt. Funkcja ustawia kolory linii, tytuł, zakresy osi oraz antyaliasing.
- *
- * @param type Typ wykresu (np. PWM, RPM, Current, itd.).
- * @param targetLayout Layout, do którego ma zostać dodany wykres.
- * @param title Tytuł wykresu wyświetlany u góry.
- * @param yLabel Opis osi Y (np. "obr/min", "V", "mA").
- * @param yMax Maksymalna wartość zakresu osi Y.
- * @param xRange Zakres osi X w sekundach (domyślnie 5).
+ * Funkcja tworzy nowy wykres o zadanym typie, konfiguruje osie, tytuły, kolory oraz dodaje go do podanego layoutu.
+ * Wykres wyświetla parametr w funkcji czasu.
+ * Użytkownik może ustawić czy oś Y ma korzystać z "ładnych" wartości (nice numbers).
  */
 
 void ChartsManager::setupChart(ChartType type, QLayout *targetLayout, const QString &title, const QString &yLabel, float yMax, int xRange, bool nice_numbers) {
@@ -58,13 +65,9 @@ void ChartsManager::setupChart(ChartType type, QLayout *targetLayout, const QStr
 }
 
 /**
- *
- * Dodaje pojedynczy punkt do wykresu danego typu. Jeśli zakres X został przekroczony, oś X
- * przesuwa się w prawo. Stare punkty poza aktualnym zakresem są usuwane.
- *
- * @param type Typ wykresu.
- * @param time Czas pomiaru (np. czas działania aplikacji w sekundach).
- * @param value Wartość pomiaru (np. prąd, RPM).
+ * Punkt reprezentuje wartość parametru w danym czasie.
+ * Jeśli aktualny czas przekracza zakres osi X, oś X jest przesuwana w prawo.
+ * Stare punkty spoza aktualnego okna czasu są usuwane automatycznie.
  */
 void ChartsManager::addPoint(ChartType type, qreal time, qreal value) {
     if (!charts.contains(type)) return;
@@ -81,13 +84,11 @@ void ChartsManager::addPoint(ChartType type, qreal time, qreal value) {
 }
 
 /**
- *
- * Funkcja działa iteracyjnie, usuwając punkty z początku serii do momentu, aż wszystkie znajdują się
- * w aktualnym oknie czasowym wykresu (domyślnie ostatnie 5 sekund).
- *
- * @param series Seria danych (QLineSeries), z której mają zostać usunięte stare punkty.
- * @param currentTime Aktualny czas (w sekundach) używany do określenia okna czasowego.
+ * Funkcja iteracyjnie usuwa najstarsze punkty z początku serii,
+ * tak aby na wykresie pozostawały tylko punkty w aktualnym oknie czasu
+ * (np. ostatnie 5 sekund).
  */
+
 void ChartsManager::removeOldPoints(QLineSeries *series, qreal currentTime) {
     // Usuwanie starych punktów spoza zakresu ostatnich 5 sekund
     // Jeśli są jakiekolwiek punkty oraz wartość pierwszego punktu na osi X jest
@@ -98,13 +99,23 @@ void ChartsManager::removeOldPoints(QLineSeries *series, qreal currentTime) {
     }
 }
 
+/**
+ * Funkcja pozwala na dynamiczną zmianę tytułu wykresu (np. po zmianie języka GUI).
+ */
 void ChartsManager::setTitle(ChartType type, const QString &title) {
     charts[type].chart->setTitle(title);
 }
 
+/**
+ * Funkcja pozwala na dynamiczną zmianę nazwy serii (np. po zmianie języka GUI).
+ */
 void ChartsManager::setSeriesName(ChartType type, const QString &name) {
     charts[type].series->setName(name);
 }
+
+/**
+ * Funkcja pozwala na dynamiczną zmianę tytułu osi X (np. po zmianie języka GUI).
+ */
 
 void ChartsManager::setXAxisTitle(ChartType type, const QString &title) {
         charts[type].axisX->setTitleText(title);

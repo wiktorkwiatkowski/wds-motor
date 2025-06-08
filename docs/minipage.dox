@@ -1,14 +1,36 @@
 /**
- * @mainpage Opis projektu
+ * @mainpage Sterowanie i wizualizacja pracy silnika DC — dokumentacja aplikacji
  *
- * Aplikacja Qt do sterowania silnikiem DC przez ESP32, z komunikacją binarną i wizualizacją danych.
+ * Aplikacja desktopowa oparta na Qt do sterowania silnikiem DC przez mikrokontroler ESP32.
+ * Umożliwia komunikację w trybie binarnym oraz wizualizację parametrów pracy silnika w czasie rzeczywistym.
  *
- * ## Zawiera:
- * - Odbiór i parsowanie danych z ESP32 (PWM, RPM, prąd, napięcie, moc, PID).
- * - Wysyłanie wartości sterujących (PWM, RPM, PID, manual/automatic).
- * - Dokumentację klas i funkcji.
+ * ## Funkcjonalności:
+ * - Odbiór i parsowanie ramek binarnych z ESP32 zawierających:
+ *   - aktualne PWM [%],
+ *   - RPM [obr/min],
+ *   - prąd [mA],
+ *   - napięcie [V],
+ *   - moc [mW],
+ *   - aktualne nastawy PID (Kp, Ki, Kd),
+ *   - tryb pracy (manualny / automatyczny).
+ * - Wysyłanie poleceń sterujących do ESP32:
+ *   - ustawienie PWM,
+ *   - zadanie RPM (w trybie automatycznym),
+ *   - zmiana parametrów PID,
+ *   - przełączenie trybu pracy (manualny / automatyczny),
+ *   - uruchomienie / zatrzymanie silnika.
+ * - Wizualizacja danych w czasie rzeczywistym:
+ *   - dynamiczne wykresy dla parametrów pracy silnika: PWM, RPM, prądu, napięcia i mocy,
+ *     automatycznie aktualizowane podczas działania aplikacji.
+ * - Obsługa dwóch języków interfejsu (polski / angielski).
+ *
+ * ## Moduły:
+ * - SerialReader — obsługa komunikacji szeregowej.
+ * - ChartsManager — zarządzanie wykresami danych.
+ * - MainWindow — interfejs graficzny i logika aplikacji.
  *
  * ## Autor:
- * Wiktor Kwiatkowski 275423, 2025
- *
+ * Wiktor Kwiatkowski  
+ * Nr albumu: 275423  
+ * Rok: 2025
  */

@@ -2,8 +2,10 @@
  * @file serialreader.h
  * @brief Deklaracja klasy SerialReader do obsługi komunikacji szeregowej.
  *
- * Zawiera strukturę SerialData, enum DataType i klasę SerialReader.
- * Odpowiada za komunikację z mikrokontrolerem przez konwerter UART-USB.
+ * Plik nagłówkowy definiujący strukturę SerialData, enumerację DataType oraz klasę SerialReader.
+ * Klasa umożliwia komunikację z mikrokontrolerem przez port szeregowy (UART-USB),
+ * obsługuje wysyłanie i odbiór danych w formacie ramek binarnych oraz
+ * emituje odpowiednie sygnały do interfejsu użytkownika.
  */
 
 #ifndef SERIALREADER_H
@@ -15,10 +17,6 @@
 /**
  * @struct SerialData
  * @brief Struktura przechowująca dane odebrane z mikrokontrolera.
- *
- * Dane te reprezentują aktualne parametry pracy silnika:
- * obroty (RPM), wypełnienie PWM, prąd, napięcie, moc oraz
- * bieżące nastawy regulatora PID (Kp, Ki, Kd).
  */
 struct SerialData {
     float rpm = 0.0f;     ///< Obroty silnika [obr/min]
@@ -35,80 +33,86 @@ struct SerialData {
 /**
  * @enum DataType
  * @brief Typ danych wysyłanych do mikrokontrolera.
- *
- * Każdy typ odpowiada jednej konfiguracji.
- * Dzięki tym wartością mikrokontroler będzie wiedział, jak
- * interpretować otrzymaną wartość.
  */
 enum DataType : quint8 {
-    PWM = 0x01,  ///< Zmiana wypełnienia PWM
-    RPM = 0x02,  ///< Zmiana zadanej prędkości obrotowej (RPM)
-    Kp = 0x03,   ///< Zmiana parametru Kp
-    Ki = 0x04,   ///< Zmiana parametru Ki
-    Kd = 0x05,   ///< Zmiana parametru Kd
-    mode = 0x06, ///< Zmiana trybu na manualny/automatyczny, 0x00000000 - manualny, 0xFFFFFFFF - automatyczny
-    start_stop = 0x07
+    PWM = 0x01,       ///< Zmiana wypełnienia PWM.
+    RPM = 0x02,       ///< Zmiana zadanej prędkości obrotowej (RPM).
+    Kp = 0x03,        ///< Zmiana parametru Kp.
+    Ki = 0x04,        ///< Zmiana parametru Ki.
+    Kd = 0x05,        ///< Zmiana parametru Kd.
+    mode = 0x06,      ///< Zmiana trybu na manualny/automatyczny.
+    start_stop = 0x07 ///< Start/Stop silnika.
 };
 
 /**
  * @class SerialReader
- * @brief Klasa odpowiedzialna za komunikację z mikrokontrolerem przez port
- * szeregowy.
- *
- * Obsługuje odbiór i wysyłanie danych, parsowanie ramek oraz
- * emitowanie sygnałów do interfejsu użytkownika.
+ * @brief Klasa odpowiedzialna za komunikację z mikrokontrolerem przez port szeregowy.
  */
 class SerialReader : public QObject {
     Q_OBJECT
 public:
     /**
-   * @brief Konstruktor klasy SerialReader.
-   * @param parent Obiekt nadrzędny (domyślnie nullptr).
-   */
+     * @brief Konstruktor klasy SerialReader.
+     * @param parent Obiekt nadrzędny (domyślnie nullptr).
+     */
     explicit SerialReader(QObject *parent = nullptr);
+
     /**
-   * @brief Rozpoczyna komunikację przez port szeregowy.
-   * @param portName Nazwa portu (np. COM3 lub /dev/ttyUSB0).
-   */
+     * @brief Rozpoczyna komunikację przez port szeregowy.
+     * @param portName Nazwa portu (np. COM3 lub /dev/ttyUSB0).
+     * @param baudRate Prędkość transmisji (domyślnie 115200 Bd).
+     */
     void start(const QString &portName, int baudRate = QSerialPort::Baud115200);
 
     /**
-   * @brief Zatrzymuje komunikację (zamyka port).
-   */
+     * @brief Zatrzymuje komunikację (zamyka port).
+     */
     void stop();
 
     /**
-   * @brief Wysyła ramkę danych do mikrokontrolera.
-   * @param type Typ danych (enum DataType), mówiący esp jak ma interpretować
-   * otrzymaną wartość.
-   * @param value Wartość typu float do wysłania.
-   */
+     * @brief Wysyła ramkę danych do mikrokontrolera.
+     * @param type Typ danych (enum DataType), określający rodzaj wysyłanej wartości.
+     * @param value Wartość typu float do wysłania.
+     */
     void sendData(DataType type, float value);
 
+    /**
+     * @brief Sprawdza, czy port szeregowy jest otwarty.
+     * @return true jeśli port jest otwarty, false w przeciwnym wypadku.
+     */
     bool isOpen() const;
 
+    /**
+     * @brief Obsługuje błędy portu szeregowego.
+     * @param error Kod błędu.
+     */
     void handleError(QSerialPort::SerialPortError error);
 
 signals:
+
     /**
-   * @brief Sygnał emitowany po odebraniu i sparsowaniu poprawnej ramki.
-   * @param data Struktura zawierająca wszystkie dane z ramki.
-   */
+     * @brief Sygnał emitowany po odebraniu i sparsowaniu poprawnej ramki.
+     * @param data Struktura zawierająca wszystkie dane z ramki.
+     */
     void newDataReceived(const SerialData &data);
 
     /**
-   * @brief Sygnał emitowany w przypadku błędu otwarcia lub pracy z portem.
-   * @param error Treść komunikatu błędu.
-   */
+     * @brief Sygnał emitowany w przypadku błędu otwarcia lub pracy z portem.
+     * @param error Treść komunikatu błędu.
+     */
     void errorOccurred(const QString &error);
 
+    /**
+     * @brief Sygnał emitowany w przypadku wykrycia rozłączenia portu.
+     */
     void portDisconnected();
 
 private slots:
+
     /**
-   * @brief Slot wywoływany automatycznie przy dostępnych danych na porcie
-   * szeregowym.
-   */
+     * @brief Slot wywoływany automatycznie przy dostępnych danych na porcie
+     * szeregowym.
+     */
     void handleReadyRead();
 
 private:
@@ -120,7 +124,7 @@ private:
    * @brief Próbuje sparsować jedną ramkę danych z bufora.
    * @param frame Bufor zawierający odebraną ramkę.
    * @param data Struktura, do której zapisane zostaną odczytane dane.
-   * @return true jeśli parsowanie i suma kontrolna są poprawne.
+   * @return true jeśli parsowanie i suma kontrolna są poprawne, false w przeciwnym wypadku.
    */
     bool parseFrame(const QByteArray &frame, SerialData &data);
 };

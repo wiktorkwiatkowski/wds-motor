@@ -1,34 +1,28 @@
 /**
  * @file main.cpp
- * @brief Uruchamia program i pozwala użytkownikowi wybrać port szeregowy.
+ * @brief Główna funkcja uruchamiająca aplikację sterującą silnikiem.
  *
- * Plik zawiera główną funkcję programu. Na początku wyświetla okno wyboru portu
- * USB, a po zatwierdzeniu uruchamia główne okno aplikacji z wizualizacją danych
- * i kontrolą silnika.
+ * Plik zawiera funkcję main(), od której rozpoczyna się działanie programu.
+ *
+ * Program realizuje następujący przepływ:
+ * - tworzy obiekt QApplication niezbędny do obsługi interfejsu graficznego Qt,
+ * - ładuje domyślne tłumaczenie interfejsu (język angielski),
+ * - uruchamia główne okno aplikacji (MainWindow), które:
+ *   - pozwala użytkownikowi wybrać port szeregowy do komunikacji z mikrokontrolerem,
+ *   - umożliwia wizualizację parametrów pracy silnika (RPM, prąd, napięcie, moc, PWM),
+ *   - pozwala sterować pracą silnika (Start/Stop, tryb ręczny/automatyczny, PID).
+ *
+ * Program kończy działanie, gdy użytkownik zamknie główne okno aplikacji.
+ *
+ * @see MainWindow
  */
 
 #include "../inc/mainwindow.h"
 #include <QApplication>
 #include <QLocale>
-#include <QStyle>
 #include <QTranslator>
-#include <QLocale>
 #include <QDebug>
-#include <QDir>
-#include <QCoreApplication>
 
-
-
-/**
- * @brief Główna funkcja programu.
- *
- * Pokazuje okno dialogowe do wyboru portu COM, a następnie otwiera główne okno
- * aplikacji. Jeśli użytkownik anuluje wybór portu, program kończy działanie.
- *
- * @param argc Liczba argumentów przekazanych do programu.
- * @param argv Argumenty przekazane z linii poleceń.
- * @return Kod zakończenia programu (0 = OK).
- */
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
     QTranslator translator;
@@ -40,7 +34,6 @@ int main(int argc, char *argv[]) {
         qDebug() << "Failed to load translator";
     }
 
-    // Stworzenie i uruchamienie głównego okna aplikacji
     MainWindow w;
     w.setWindowTitle(QObject::tr("Sterowanie silnikiem"));
     w.show();
