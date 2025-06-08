@@ -161,6 +161,12 @@ void MainWindow::on_buttonStartStop_clicked() {
 
     // Wyślij do ESP32: np. 1 = start, 0 = stop
     serialReader->sendData(DataType::start_stop, isMotorRunning ? 1.0f : 0.0f);
+    serialReader->sendData(DataType::PWM, 0.0f);
+    serialReader->sendData(DataType::RPM, 0.0f);
+    // Wyzeruj suwak PWM po naciśnięciu STOP
+    if (!isMotorRunning) {
+        ui->SliderPWMManual->setValue(0);
+    }
 }
 
 /**
@@ -193,7 +199,7 @@ void MainWindow::on_buttonToggleMode_clicked() {
     ui->labelPWM->setVisible(isManualMode);
 
 
-    ui->lineEditTargetRPM->setVisible(!isManualMode);
+    ui->spinBoxTargetRPM->setVisible(!isManualMode);
     ui->pushButtonSetRPM->setVisible(!isManualMode);
     ui->labelSetRPMAuto->setVisible(!isManualMode);
     ui->labelrpermin->setVisible(!isManualMode);
@@ -209,13 +215,10 @@ void MainWindow::on_buttonToggleMode_clicked() {
  */
 void MainWindow::on_buttonSetRPM_clicked() {
     bool ok;
-    float rpm = ui->lineEditTargetRPM->text().toFloat(&ok);
-    if (ok) {
-        serialReader->sendData(DataType::RPM, rpm);
-    } else {
-        qDebug() << "Nieprawidłowa wartość RPM";
-    }
-    ui->lineEditTargetRPM->clear();
+    int rpm = ui->spinBoxTargetRPM->value();
+    serialReader->sendData(DataType::RPM, rpm);
+    qDebug()<< "Wartość rpm: "<< rpm;
+    ui->spinBoxTargetRPM->clear();
 }
 
 /**
@@ -294,7 +297,7 @@ void MainWindow::handlePortDisconnected() {
     isPortConnected = false;
     ui->label_8->setText(tr("nie połączono"));
     ui->label_8->setStyleSheet("color: red; font-weight: bold;");
-    ui->pushButtonConnectPort->setText("Połącz");
+    ui->pushButtonConnectPort->setText(tr("Połącz"));
 
     // Reset stanu silnika
     isMotorRunning = false;
@@ -305,12 +308,12 @@ void MainWindow::handlePortDisconnected() {
     ui->pushButtonToggleMode->setText(tr("Tryb: Ręczny"));
     ui->SliderPWMManual->setVisible(true);
     ui->labelPWMManualValue->setVisible(true);
-    ui->lineEditTargetRPM->setVisible(false);
+    ui->spinBoxTargetRPM->setVisible(false);
     ui->pushButtonSetRPM->setVisible(false);
     ui->labelSetRPMAuto->setVisible(false);
     ui->labelrpermin->setVisible(false);
-    ui->widgetSetrpermin->setVisible(false);
-
+    ui->widgetSetrpermin->setVisible(false);    
+    ui->SliderPWMManual->setValue(0);
     serialReader->stop();
 }
 
@@ -392,7 +395,7 @@ void MainWindow::configureInitialMode() {
     ui->label_8->setText(tr("nie połączono"));
     ui->label_8->setStyleSheet("color: red; font-weight: bold;");
 
-    ui->lineEditTargetRPM->setVisible(false);
+    ui->spinBoxTargetRPM->setVisible(false);
     ui->pushButtonSetRPM->setVisible(false);
     ui->labelSetRPMAuto->setVisible(false);
     ui->labelrpermin->setVisible(false);
@@ -462,41 +465,43 @@ void MainWindow::switchToPolish() {
     qApp->removeTranslator(&translator);
     if (translator.load("../../i18n/wds_motor_pl.qm")) {
         qApp->installTranslator(&translator);
-        currentLanguage = "pl";
-        qDebug() << "Switched to Polish";
     } else {
         qDebug() << "Failed to load Polish translation!";
     }
     ui->retranslateUi(this); // odświeżenie GUI
+    this->setWindowTitle(tr("Sterowanie silnikiem"));
     retranslateCharts();
+    ui->pushButtonToggleMode->setText(isManualMode ? tr("Tryb: Ręczny") : tr("Tryb: Automatyczny"));
+
 }
 
 void MainWindow::switchToEnglish() {
     qApp->removeTranslator(&translator);
     if (translator.load("../../i18n/wds_motor_en_US.qm")) {
         qApp->installTranslator(&translator);
-        currentLanguage = "en";
-        qDebug() << "Switched to English";
     } else {
         qDebug() << "Failed to load English translation!";
     }
     ui->retranslateUi(this); // odświeżenie GUI
+    this->setWindowTitle(tr("Sterowanie silnikiem"));
     retranslateCharts();
+    ui->pushButtonToggleMode->setText(isManualMode ? tr("Tryb: Ręczny") : tr("Tryb: Automatyczny"));
+
 }
 
 void MainWindow::retranslateCharts() {
     charts->setTitle(ChartType::Voltage, tr("Napięcie"));
     charts->setSeriesName(ChartType::Voltage, tr("Napięcie"));
+    charts->setXAxisTitle(ChartType::Voltage, tr("Czas [s]"));
 
     charts->setTitle(ChartType::Current, tr("Prąd"));
     charts->setSeriesName(ChartType::Current, tr("Prąd"));
+    charts->setXAxisTitle(ChartType::Current, tr("Czas [s]"));
 
     charts->setTitle(ChartType::Power, tr("Moc"));
     charts->setSeriesName(ChartType::Power, tr("Moc"));
+    charts->setXAxisTitle(ChartType::Power, tr("Czas [s]"));
 
-    charts->setTitle(ChartType::RPM, tr("RPM"));
-    charts->setSeriesName(ChartType::RPM, tr("RPM"));
-
-    charts->setTitle(ChartType::PWM, tr("PWM"));
-    charts->setSeriesName(ChartType::PWM, tr("PWM"));
+    charts->setXAxisTitle(ChartType::RPM, tr("Czas [s]"));
+    charts->setXAxisTitle(ChartType::PWM, tr("Czas [s]"));
 }

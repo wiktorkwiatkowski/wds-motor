@@ -105,3 +105,7 @@ void ChartsManager::setTitle(ChartType type, const QString &title) {
 void ChartsManager::setSeriesName(ChartType type, const QString &name) {
     charts[type].series->setName(name);
 }
+
+void ChartsManager::setXAxisTitle(ChartType type, const QString &title) {
+        charts[type].axisX->setTitleText(title);
+}

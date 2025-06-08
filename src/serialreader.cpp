@@ -131,6 +131,11 @@ void SerialReader::sendData(DataType type, float value) {
     if (type == PWM) {
         value = static_cast<uint8_t>(value);
     }
+
+    if(type == RPM){
+        value = static_cast<uint8_t>(value);
+    }
+
     if(type == mode){
         if(value == 0.0f){
             qDebug() << "Wysyłam tryb manual";

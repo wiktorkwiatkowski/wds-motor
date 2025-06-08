@@ -57,6 +57,7 @@ public:
 
     void setSeriesName(ChartType type, const QString &name);
 
+    void setXAxisTitle(ChartType type, const QString &title);
 private:
 
     /**

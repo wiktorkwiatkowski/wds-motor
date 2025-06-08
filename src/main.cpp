@@ -31,7 +31,6 @@
  */
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
-
     QTranslator translator;
 
     if (translator.load("../../i18n/wds_motor_en_US.qm")) {

@@ -163,6 +163,5 @@ private:
     qint32 currentBaudRate = 115200;    ///< Aktualna prędkość transmisji (domyślnie 115200)
     bool isPortConnected = false;       ///< Flaga informująca o stanie połączenia szeregowego
     QTranslator translator;
-    QString currentLanguage;
 };
 #endif // MAINWINDOW_H

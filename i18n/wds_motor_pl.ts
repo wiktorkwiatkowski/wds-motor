@@ -4,7 +4,7 @@
 <context>
     <name>ChartsManager</name>
     <message>
-        <location filename="../src/chartsmanager.cpp" line="32"/>
+        <location filename="../src/chartsmanager.cpp" line="34"/>
         <source>Czas [s]</source>
         <translation>Czas [s]</translation>
     </message>
@@ -43,9 +43,6 @@
         <location filename="../ui/mainwindow.ui" line="171"/>
         <location filename="../ui/mainwindow.ui" line="847"/>
         <location filename="../ui/mainwindow.ui" line="866"/>
-        <location filename="../ui/mainwindow.ui" line="885"/>
-        <location filename="../ui/mainwindow.ui" line="904"/>
-        <location filename="../ui/mainwindow.ui" line="923"/>
         <source>0.00</source>
         <translation type="unfinished"></translation>
     </message>
@@ -84,7 +81,7 @@
         <location filename="../src/mainwindow.cpp" line="180"/>
         <location filename="../src/mainwindow.cpp" line="305"/>
         <source>Tryb: Ręczny</source>
-        <translation type="unfinished"></translation>
+        <translation>Tryb: Ręczny</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="356"/>
@@ -145,7 +142,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.ui" line="616"/>
         <location filename="../ui/mainwindow.ui" line="623"/>
         <source>9600</source>
         <translation type="unfinished"></translation>
@@ -166,6 +162,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../ui/mainwindow.ui" line="616"/>
         <location filename="../ui/mainwindow.ui" line="643"/>
         <source>115200</source>
         <translation type="unfinished"></translation>
@@ -221,6 +218,17 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../ui/mainwindow.ui" line="885"/>
+        <location filename="../ui/mainwindow.ui" line="923"/>
+        <source>0.0</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/mainwindow.ui" line="904"/>
+        <source>0</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../ui/mainwindow.ui" line="940"/>
         <source>V</source>
         <translation type="unfinished"></translation>
@@ -246,28 +254,28 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.ui" line="1253"/>
+        <location filename="../ui/mainwindow.ui" line="1266"/>
         <source>Zmień język</source>
-        <translation>Zmień język</translation>
+        <translation>&amp;Zmień język</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.ui" line="1262"/>
-        <location filename="../ui/mainwindow.ui" line="1267"/>
+        <location filename="../ui/mainwindow.ui" line="1275"/>
+        <location filename="../ui/mainwindow.ui" line="1280"/>
         <source>hello</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.ui" line="1272"/>
+        <location filename="../ui/mainwindow.ui" line="1285"/>
         <source>there</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.ui" line="1277"/>
+        <location filename="../ui/mainwindow.ui" line="1290"/>
         <source>Polski</source>
         <translation>Polski</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.ui" line="1282"/>
+        <location filename="../ui/mainwindow.ui" line="1295"/>
         <source>Angielski</source>
         <translation>Angielski</translation>
     </message>
@@ -288,24 +296,39 @@
     </message>
     <message>
         <location filename="../src/mainwindow.cpp" line="435"/>
+        <location filename="../src/mainwindow.cpp" line="488"/>
+        <location filename="../src/mainwindow.cpp" line="489"/>
         <source>Napięcie</source>
         <translation>Napięcie</translation>
     </message>
     <message>
         <location filename="../src/mainwindow.cpp" line="436"/>
+        <location filename="../src/mainwindow.cpp" line="492"/>
+        <location filename="../src/mainwindow.cpp" line="493"/>
         <source>Prąd</source>
         <translation>Prąd</translation>
     </message>
     <message>
         <location filename="../src/mainwindow.cpp" line="437"/>
+        <location filename="../src/mainwindow.cpp" line="496"/>
+        <location filename="../src/mainwindow.cpp" line="497"/>
         <source>Moc</source>
         <translation>Moc</translation>
+    </message>
+    <message>
+        <location filename="../src/mainwindow.cpp" line="490"/>
+        <location filename="../src/mainwindow.cpp" line="494"/>
+        <location filename="../src/mainwindow.cpp" line="498"/>
+        <location filename="../src/mainwindow.cpp" line="500"/>
+        <location filename="../src/mainwindow.cpp" line="501"/>
+        <source>Czas [s]</source>
+        <translation>Czas [s]</translation>
     </message>
 </context>
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../src/main.cpp" line="46"/>
+        <location filename="../src/main.cpp" line="45"/>
         <source>Sterowanie silnikiem</source>
         <translation>Sterowanie silnikiem</translation>
     </message>
