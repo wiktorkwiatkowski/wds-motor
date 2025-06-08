@@ -117,6 +117,9 @@ private slots:
      */
     void handlePortDisconnected();
 
+    void switchToPolish();
+
+    void switchToEnglish();
 private:
 
     /**
@@ -145,6 +148,8 @@ private:
      */
     void setupTimers();
 
+    void retranslateCharts();
+
     Ui::MainWindow *ui;                 ///< Interfejs użytkownika
     SerialReader *serialReader;         ///< Obiekt komunikacji szeregowej z ESP32
     QElapsedTimer elapsed;              ///< Timer odmierzający czas od uruchomienia aplikacji
@@ -157,5 +162,7 @@ private:
     QString currentPortName;            ///< Nazwa aktualnie używanego portu szeregowego
     qint32 currentBaudRate = 115200;    ///< Aktualna prędkość transmisji (domyślnie 115200)
     bool isPortConnected = false;       ///< Flaga informująca o stanie połączenia szeregowego
+    QTranslator translator;
+    QString currentLanguage;
 };
 #endif // MAINWINDOW_H

@@ -21,7 +21,6 @@ set(PROJECT_SOURCES
         ui/mainwindow.ui
         ${TS_FILES}
 )
-
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(wds_motor
         MANUAL_FINALIZATION

@@ -10,8 +10,13 @@
 #include "../inc/mainwindow.h"
 #include <QApplication>
 #include <QLocale>
-#include <QTranslator>
 #include <QStyle>
+#include <QTranslator>
+#include <QLocale>
+#include <QDebug>
+#include <QDir>
+#include <QCoreApplication>
+
 
 
 /**
@@ -26,9 +31,19 @@
  */
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
+
+    QTranslator translator;
+
+    if (translator.load("../../i18n/wds_motor_en_US.qm")) {
+        qDebug() << "Translator loaded";
+        a.installTranslator(&translator);
+    } else {
+        qDebug() << "Failed to load translator";
+    }
+
     // Stworzenie i uruchamienie głównego okna aplikacji
     MainWindow w;
-    w.setWindowTitle("Sterowanie silnikiem");
+    w.setWindowTitle(QObject::tr("Sterowanie silnikiem"));
     w.show();
     return a.exec();
 }

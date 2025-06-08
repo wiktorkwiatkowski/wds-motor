@@ -177,7 +177,7 @@ void MainWindow::on_buttonToggleMode_clicked() {
     // Zawsze wyłącz silnik przy zmianie trybu
     serialReader->sendData(DataType::PWM, 0.0f);
 
-    ui->pushButtonToggleMode->setText(isManualMode ? "Tryb: Ręczny" : "Tryb: Automatyczny");
+    ui->pushButtonToggleMode->setText(isManualMode ? tr("Tryb: Ręczny") : tr("Tryb: Automatyczny"));
 
     // Jest tryb manualny to wyślij 0, automatyczny 1
     if (isManualMode == 1){
@@ -240,7 +240,7 @@ void MainWindow::on_ConnectPortClicked(){
         serialReader->start(selectedPort);
         if (!serialReader->isOpen()) {
             qDebug() << "Nie udało się połączyć z portem: " << selectedPort;
-            ui->label_8->setText("nie połączono");
+            ui->label_8->setText(tr("nie połączono"));
             ui->label_8->setStyleSheet("color: red; font-weight: bold;");
             return;
         }
@@ -248,9 +248,9 @@ void MainWindow::on_ConnectPortClicked(){
         // Zaktualizuj GUI
         currentPortName = selectedPort;
         currentBaudRate = ui->comboBoxBaudRates->currentText().toInt();
-        ui->label_8->setText("połączono");
+        ui->label_8->setText(tr("połączono"));
         ui->label_8->setStyleSheet("color: green; font-weight: bold;");
-        ui->pushButtonConnectPort->setText("Rozłącz");
+        ui->pushButtonConnectPort->setText(tr("Rozłącz"));
 
         isPortConnected = true;
 
@@ -292,7 +292,7 @@ void MainWindow::refreshSerialPortList() {
  */
 void MainWindow::handlePortDisconnected() {
     isPortConnected = false;
-    ui->label_8->setText("nie połączono");
+    ui->label_8->setText(tr("nie połączono"));
     ui->label_8->setStyleSheet("color: red; font-weight: bold;");
     ui->pushButtonConnectPort->setText("Połącz");
 
@@ -302,7 +302,7 @@ void MainWindow::handlePortDisconnected() {
 
     // Przywróć domyślny tryb ręczny
     isManualMode = true;
-    ui->pushButtonToggleMode->setText("Tryb: Ręczny");
+    ui->pushButtonToggleMode->setText(tr("Tryb: Ręczny"));
     ui->SliderPWMManual->setVisible(true);
     ui->labelPWMManualValue->setVisible(true);
     ui->lineEditTargetRPM->setVisible(false);
@@ -375,6 +375,10 @@ void MainWindow::connectSignals(){
 
     // Obsługa przycisku "Zapisz wartości"
     connect(ui->buttonSavePID, &QPushButton::clicked, this, &MainWindow::on_buttonSavePID_clicked);
+
+    connect(ui->actionPolski, &QAction::triggered, this, &MainWindow::switchToPolish);
+    connect(ui->actionAngielski, &QAction::triggered, this, &MainWindow::switchToEnglish);
+
 }
 
 /**
@@ -385,7 +389,7 @@ void MainWindow::connectSignals(){
  * - ukrycie elementów trybu automatycznego.
  */
 void MainWindow::configureInitialMode() {
-    ui->label_8->setText("nie połączono");
+    ui->label_8->setText(tr("nie połączono"));
     ui->label_8->setStyleSheet("color: red; font-weight: bold;");
 
     ui->lineEditTargetRPM->setVisible(false);
@@ -428,9 +432,9 @@ void MainWindow::setupValidators() {
 void MainWindow::setupCharts() {
     charts->setupChart(ChartType::PWM, ui->widgetPWMGraph->layout(), "PWM", "PWM [%]", 110, 5, false);
     charts->setupChart(ChartType::RPM, ui->widgetRPMGraph->layout(), "RPM", "obr/min", 600, 5, false);
-    charts->setupChart(ChartType::Voltage, ui->widgetVoltageGraph->layout(), "Napięcie", "V", 8.5, 5, false);
-    charts->setupChart(ChartType::Current, ui->widgetCurrentGraph->layout(), "Prąd", "mA", 800, 5, false);
-    charts->setupChart(ChartType::Power, ui->widgetPowerGraph->layout(), "Moc", "mW", 5500, 5, false);
+    charts->setupChart(ChartType::Voltage, ui->widgetVoltageGraph->layout(), tr("Napięcie"), "V", 8.5, 5, false);
+    charts->setupChart(ChartType::Current, ui->widgetCurrentGraph->layout(), tr("Prąd"), "mA", 800, 5, false);
+    charts->setupChart(ChartType::Power, ui->widgetPowerGraph->layout(), tr("Moc"), "mW", 5500, 5, false);
 
 }
 
@@ -452,4 +456,47 @@ void MainWindow::setupTimers() {
     updateGUITimer->setInterval(500);
     connect(updateGUITimer, &QTimer::timeout, this, &MainWindow::updateGUI);
     updateGUITimer->start();
+}
+
+void MainWindow::switchToPolish() {
+    qApp->removeTranslator(&translator);
+    if (translator.load("../../i18n/wds_motor_pl.qm")) {
+        qApp->installTranslator(&translator);
+        currentLanguage = "pl";
+        qDebug() << "Switched to Polish";
+    } else {
+        qDebug() << "Failed to load Polish translation!";
+    }
+    ui->retranslateUi(this); // odświeżenie GUI
+    retranslateCharts();
+}
+
+void MainWindow::switchToEnglish() {
+    qApp->removeTranslator(&translator);
+    if (translator.load("../../i18n/wds_motor_en_US.qm")) {
+        qApp->installTranslator(&translator);
+        currentLanguage = "en";
+        qDebug() << "Switched to English";
+    } else {
+        qDebug() << "Failed to load English translation!";
+    }
+    ui->retranslateUi(this); // odświeżenie GUI
+    retranslateCharts();
+}
+
+void MainWindow::retranslateCharts() {
+    charts->setTitle(ChartType::Voltage, tr("Napięcie"));
+    charts->setSeriesName(ChartType::Voltage, tr("Napięcie"));
+
+    charts->setTitle(ChartType::Current, tr("Prąd"));
+    charts->setSeriesName(ChartType::Current, tr("Prąd"));
+
+    charts->setTitle(ChartType::Power, tr("Moc"));
+    charts->setSeriesName(ChartType::Power, tr("Moc"));
+
+    charts->setTitle(ChartType::RPM, tr("RPM"));
+    charts->setSeriesName(ChartType::RPM, tr("RPM"));
+
+    charts->setTitle(ChartType::PWM, tr("PWM"));
+    charts->setSeriesName(ChartType::PWM, tr("PWM"));
 }

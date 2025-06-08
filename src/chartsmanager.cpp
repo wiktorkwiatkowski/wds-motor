@@ -17,6 +17,8 @@ ChartsManager::ChartsManager(QObject *parent) : QObject{parent}{}
 
 void ChartsManager::setupChart(ChartType type, QLayout *targetLayout, const QString &title, const QString &yLabel, float yMax, int xRange, bool nice_numbers) {
     ChartComponents components;
+
+    components.type = type;
     components.series = new QLineSeries;
     components.chart = new QChart;
     components.chartView = new QChartView(components.chart);
@@ -29,7 +31,7 @@ void ChartsManager::setupChart(ChartType type, QLayout *targetLayout, const QStr
 
     components.axisX->setRange(0, xRange);
     components.axisX->setLabelFormat("%.1f");
-    components.axisX->setTitleText("Czas [s]");
+    components.axisX->setTitleText(tr("Czas [s]"));
     components.chart->addAxis(components.axisX, Qt::AlignBottom);
     components.series->attachAxis(components.axisX);
     components.axisY->setRange(0, yMax);
@@ -94,4 +96,12 @@ void ChartsManager::removeOldPoints(QLineSeries *series, qreal currentTime) {
     while (!series->points().isEmpty() && series->points().first().x() < (currentTime - 5.0)) {
         series->remove(0);
     }
+}
+
+void ChartsManager::setTitle(ChartType type, const QString &title) {
+    charts[type].chart->setTitle(title);
+}
+
+void ChartsManager::setSeriesName(ChartType type, const QString &name) {
+    charts[type].series->setName(name);
 }

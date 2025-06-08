@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="en_US">
+<TS version="2.1" language="pl_PL">
 <context>
     <name>ChartsManager</name>
     <message>
         <location filename="../src/chartsmanager.cpp" line="32"/>
         <source>Czas [s]</source>
-        <translation>Time [s]</translation>
+        <translation>Czas [s]</translation>
     </message>
 </context>
 <context>
@@ -19,18 +19,18 @@
     <message>
         <location filename="../ui/mainwindow.ui" line="40"/>
         <source>Regulator PID</source>
-        <translation>PID controller</translation>
+        <translation>Regulator PID</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="69"/>
         <source>Aktualne:</source>
-        <translation>Current:</translation>
+        <translation>Aktualne:</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="79"/>
         <location filename="../ui/mainwindow.ui" line="340"/>
         <source>Zadaj:</source>
-        <translation>Set:</translation>
+        <translation>Zadaj:</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="93"/>
@@ -60,18 +60,19 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Zapisz wartości </source>
-        <translation type="vanished">Save values </translation>
+        <location filename="../ui/mainwindow.ui" line="196"/>
+        <source>Zapisz wartości</source>
+        <translation>Zapisz wartości</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="244"/>
         <source>Wizualizacja parametrów</source>
-        <translation>Parameters visualization</translation>
+        <translation>Wizualizacja parametrów</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="298"/>
         <source>Sterowanie silnikiem</source>
-        <translation>Motor control</translation>
+        <translation>Sterowanie silnikiem</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="315"/>
@@ -83,7 +84,7 @@
         <location filename="../src/mainwindow.cpp" line="180"/>
         <location filename="../src/mainwindow.cpp" line="305"/>
         <source>Tryb: Ręczny</source>
-        <translation>Mode: Manual</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="356"/>
@@ -91,23 +92,14 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Zastosuj </source>
-        <translation type="vanished">Apply </translation>
-    </message>
-    <message>
-        <location filename="../ui/mainwindow.ui" line="196"/>
-        <source>Zapisz wartości</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../ui/mainwindow.ui" line="371"/>
         <source>Zastosuj</source>
-        <translation type="unfinished"></translation>
+        <translation>Zastosuj</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="386"/>
         <source>Wypełnienie PWM</source>
-        <translation>PWM fill</translation>
+        <translation>Wypełnienie PWM</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="416"/>
@@ -117,20 +109,20 @@
     <message>
         <location filename="../ui/mainwindow.ui" line="437"/>
         <source>Połączenie</source>
-        <translation>Connection</translation>
+        <translation>Połączenie</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="466"/>
         <source>Połącz</source>
-        <translation>Connect</translation>
+        <translation>Połącz</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="484"/>
         <location filename="../src/mainwindow.cpp" line="243"/>
         <location filename="../src/mainwindow.cpp" line="295"/>
-        <location filename="../src/mainwindow.cpp" line="388"/>
+        <location filename="../src/mainwindow.cpp" line="392"/>
         <source>nie połączono</source>
-        <translation>disconnected</translation>
+        <translation>nie połączono</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="496"/>
@@ -145,7 +137,7 @@
     <message>
         <location filename="../ui/mainwindow.ui" line="589"/>
         <source>Odswież</source>
-        <translation>Refresh</translation>
+        <translation>Odswież</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="604"/>
@@ -201,22 +193,22 @@
     <message>
         <location filename="../ui/mainwindow.ui" line="722"/>
         <source>Wartości aktualne</source>
-        <translation>Current values</translation>
+        <translation>Wartości aktualne</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="759"/>
         <source>Napięcie:</source>
-        <translation>Voltage:</translation>
+        <translation>Napięcie:</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="776"/>
         <source>Prąd:</source>
-        <translation>Current:</translation>
+        <translation>Prąd:</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="793"/>
         <source>Moc:</source>
-        <translation>Power:</translation>
+        <translation>Moc:</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="810"/>
@@ -256,7 +248,7 @@
     <message>
         <location filename="../ui/mainwindow.ui" line="1253"/>
         <source>Zmień język</source>
-        <translation>Change language</translation>
+        <translation>Zmień język</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="1262"/>
@@ -272,42 +264,42 @@
     <message>
         <location filename="../ui/mainwindow.ui" line="1277"/>
         <source>Polski</source>
-        <translation>Polish</translation>
+        <translation>Polski</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.ui" line="1282"/>
         <source>Angielski</source>
-        <translation>English</translation>
+        <translation>Angielski</translation>
     </message>
     <message>
         <location filename="../src/mainwindow.cpp" line="180"/>
         <source>Tryb: Automatyczny</source>
-        <translation>Mode: Automatic</translation>
+        <translation>Tryb: Automatyczny</translation>
     </message>
     <message>
         <location filename="../src/mainwindow.cpp" line="251"/>
         <source>połączono</source>
-        <translation>connected</translation>
+        <translation>połączono</translation>
     </message>
     <message>
         <location filename="../src/mainwindow.cpp" line="253"/>
         <source>Rozłącz</source>
-        <translation>Disconnect</translation>
+        <translation>Rozłącz</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="431"/>
+        <location filename="../src/mainwindow.cpp" line="435"/>
         <source>Napięcie</source>
-        <translation>Voltage</translation>
+        <translation>Napięcie</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="432"/>
+        <location filename="../src/mainwindow.cpp" line="436"/>
         <source>Prąd</source>
-        <translation>Current</translation>
+        <translation>Prąd</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="433"/>
+        <location filename="../src/mainwindow.cpp" line="437"/>
         <source>Moc</source>
-        <translation>Power</translation>
+        <translation>Moc</translation>
     </message>
 </context>
 <context>
@@ -315,7 +307,7 @@
     <message>
         <location filename="../src/main.cpp" line="46"/>
         <source>Sterowanie silnikiem</source>
-        <translation>Motor control</translation>
+        <translation>Sterowanie silnikiem</translation>
     </message>
 </context>
 </TS>

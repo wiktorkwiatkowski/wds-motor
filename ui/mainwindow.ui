@@ -193,7 +193,7 @@
           <item>
            <widget class="QPushButton" name="buttonSavePID">
             <property name="text">
-             <string>Zapisz wartości </string>
+             <string>Zapisz wartości</string>
             </property>
            </widget>
           </item>
@@ -368,7 +368,7 @@
              </font>
             </property>
             <property name="text">
-             <string>Zastosuj </string>
+             <string>Zastosuj</string>
             </property>
            </widget>
           </item>
@@ -613,7 +613,7 @@
              </font>
             </property>
             <property name="currentText">
-             <string>9600</string>
+             <string>115200</string>
             </property>
             <property name="sizeAdjustPolicy">
              <enum>QComboBox::AdjustToContents</enum>
@@ -882,7 +882,7 @@
                </size>
               </property>
               <property name="text">
-               <string>0.00</string>
+               <string>0.0</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -901,7 +901,7 @@
                </size>
               </property>
               <property name="text">
-               <string>0.00</string>
+               <string>0</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -920,7 +920,7 @@
                </size>
               </property>
               <property name="text">
-               <string>0.00</string>
+               <string>0.0</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1245,9 +1245,30 @@
      <x>0</x>
      <y>0</y>
      <width>2143</width>
-     <height>23</height>
+     <height>28</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="autoFillBackground">
+    <bool>true</bool>
+   </property>
+   <widget class="QMenu" name="menuZmienJezyk">
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="title">
+     <string>Zmień język</string>
+    </property>
+    <addaction name="actionPolski"/>
+    <addaction name="actionAngielski"/>
+   </widget>
+   <addaction name="menuZmienJezyk"/>
   </widget>
   <action name="actionhello">
    <property name="text">
@@ -1262,6 +1283,16 @@
   <action name="action_4">
    <property name="text">
     <string>there</string>
+   </property>
+  </action>
+  <action name="actionPolski">
+   <property name="text">
+    <string>Polski</string>
+   </property>
+  </action>
+  <action name="actionAngielski">
+   <property name="text">
+    <string>Angielski</string>
    </property>
   </action>
  </widget>

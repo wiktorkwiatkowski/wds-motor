@@ -53,12 +53,17 @@ public:
      */
     void addPoint(ChartType type, qreal time, qreal value);
 
+    void setTitle(ChartType type, const QString &title);
+
+    void setSeriesName(ChartType type, const QString &name);
+
 private:
 
     /**
      * @brief Struktura przechowująca wszystkie komponenty pojedynczego wykresu.
      */
     struct ChartComponents {
+        ChartType type;
         QLineSeries *series;           ///< Seria danych do rysowania
         QChart *chart;                 ///< Wykres Qt
         QChartView *chartView;        ///< Widok wykresu
